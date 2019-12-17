@@ -1,9 +1,9 @@
 package participant
 
 import (
+	"github.com/ATechnoHazard/hades-2/pkg"
+	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/jinzhu/gorm"
-	"hades-2.0/pkg"
-	"hades-2.0/pkg/event"
 )
 
 type repo struct {
@@ -40,9 +40,9 @@ func (r *repo) FindByRegNo(regNo string) (*Participant, error) {
 	}
 }
 
-func (r *repo) Save(participant *Participant, eventID string) error {
+func (r *repo) Save(participant *Participant, eventID uint) error {
 	tx := r.DB.Begin()
-	e := &event.Event{EventID: eventID}
+	e := &event.Event{ID: eventID}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {
 		return pkg.ErrNotFound
@@ -82,9 +82,9 @@ func (r *repo) Delete(regNo string) error {
 	}
 }
 
-func (r *repo) RemoveAttendeeEvent(regNo string, eventID string) error {
+func (r *repo) RemoveAttendeeEvent(regNo string, eventID uint) error {
 	tx := r.DB.Begin()
-	e := &event.Event{EventID: eventID}
+	e := &event.Event{ID: eventID}
 	p := &Participant{RegNo: regNo}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {

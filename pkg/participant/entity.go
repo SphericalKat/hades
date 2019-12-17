@@ -1,6 +1,6 @@
 package participant
 
-import "hades-2.0/pkg/event"
+import "github.com/ATechnoHazard/hades-2/pkg/event"
 
 type Participant struct {
 	Name        string        `json:"name"`

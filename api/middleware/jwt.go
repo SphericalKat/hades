@@ -2,21 +2,28 @@ package middleware
 
 import (
 	"context"
-	"hades-2.0/pkg/entity"
 	"net/http"
 	"os"
 
+	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/dgrijalva/jwt-go"
-	u "hades-2.0/internal/utils"
 )
 
 type JwtContextKey string
+
+type Token struct {
+	Email        string `json:"email"`
+	Role         string `json:"role"`
+	Organization string `json:"organization"`
+	jwt.StandardClaims
+}
+
 
 // JwtAuthentication middleware for authorizing endpoints
 func JwtAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		notAuth := []string{""} // List of endpoints that doesn't require auth
+		notAuth := []string{""}   // List of endpoints that doesn't require auth
 		requestPath := r.URL.Path // Current request path
 
 		// Check if request does not need authentication, serve the request if it doesn't need it
@@ -38,7 +45,7 @@ func JwtAuthentication(next http.Handler) http.Handler {
 			return
 		}
 
-		tk := &entity.Token{}
+		tk := &Token{}
 
 		token, err := jwt.ParseWithClaims(tokenHeader, tk, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("token_password")), nil
