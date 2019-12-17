@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
-	"hades-2.0/pkg/middleware"
+	"hades-2.0/api/middleware"
 	"log"
 	"net/http"
 )
