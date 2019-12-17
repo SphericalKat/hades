@@ -40,7 +40,7 @@ func (r *repo) Save(event *Event) error {
 }
 
 func (r *repo) Delete(eventID uint) error {
-	err := r.DB.Delete(&Event{}, "event_id = ?", eventID).Error
+	err := r.DB.Where("event_id = ?", eventID).Delete(&Event{}).Error
 	switch err {
 	case nil:
 		return nil

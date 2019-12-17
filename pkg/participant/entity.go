@@ -1,6 +1,9 @@
 package participant
 
-import "github.com/ATechnoHazard/hades-2/pkg/event"
+import (
+	"github.com/ATechnoHazard/hades-2/pkg/event"
+	"time"
+)
 
 type Participant struct {
 	Name        string        `json:"name"`
@@ -8,5 +11,6 @@ type Participant struct {
 	Email       string        `json:"email"`
 	PhoneNumber string        `json:"phone_number"`
 	Gender      string        `json:"gender"`
-	Events      []event.Event `json:"event_name" gorm:"many2many:participant_events;"`
+	DeletedAt   *time.Time    `json:"-" sql:"index"`
+	Events      []event.Event `json:"-" gorm:"many2many:participant_events;"`
 }
