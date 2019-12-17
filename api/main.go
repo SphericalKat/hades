@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ATechnoHazard/hades-2/api/middleware"
+	"github.com/ATechnoHazard/hades-2/api/handler"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
 	"github.com/gorilla/mux"
@@ -9,6 +9,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
 	"github.com/lib/pq"
+	negronilogrus "github.com/meatballhat/negroni-logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 	"net/http"
@@ -24,14 +25,53 @@ func init() {
 	}
 }
 
+func initNegroni() *negroni.Negroni {
+	n := negroni.New()
+	n.Use(negronilogrus.NewMiddleware())
+	n.Use(negroni.NewRecovery())
+	n.Use(negroni.NewStatic(http.Dir("public")))
+	return n
+}
+
 func main() {
 	r := mux.NewRouter()
-	r.Use(middleware.JwtAuthentication)
 
-	n := negroni.Classic()
+	n := initNegroni()
 	n.UseHandler(r)
 
 	db := connectDb()
+	log.Println(db)
+
+	partRepo := participant.NewPostgresRepo(db)
+	eventRepo := event.NewPostgresRepo(db)
+
+	partSvc := participant.NewParticipantService(partRepo)
+	eventSvc := event.NewEventService(eventRepo)
+	handler.MakeParticipantHandler(r, partSvc)
+
+	//_ = eventSvc.SaveEvent(&event.Event{
+	//	ID:                    1,
+	//	ClubName:              "DSC",
+	//	Name:                  "SOME",
+	//	Budget:                "69",
+	//	Description:           "OWO",
+	//	Category:              "NO",
+	//	Venue:                 "YES",
+	//	Attendance:            "DF",
+	//	ExpectedParticipants:  "sDF",
+	//	PROrequest:            "sdfsdf",
+	//	CampusEngineerRequest: "sdfsdf",
+	//	Duration:              "SFD",
+	//	Status:                "sdfsdf",
+	//	ToDate:                time.Now(),
+	//	FromDate:              time.Now(),
+	//	ToTime:                time.Now().Add(time.Hour),
+	//	FromTime:              time.Now(),
+	//})
+
+	e, _ := eventSvc.ReadEvent(1)
+	log.Println(e)
+	//partSvc.CreateAttendee()
 
 	log.Println("Listening on port 4000")
 
@@ -55,7 +95,7 @@ func connectDb() *gorm.DB {
 	if os.Getenv("DEBUG") == "true" {
 		db = db.Debug()
 	}
-	db.AutoMigrate(&participant.Participant{}, &event.Event{})
 
+	db.AutoMigrate(&participant.Participant{}, &event.Event{})
 	return db
 }
