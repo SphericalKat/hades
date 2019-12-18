@@ -66,12 +66,15 @@ func main() {
 	partRepo := participant.NewPostgresRepo(db)
 	eventRepo := event.NewPostgresRepo(db)
 	orgRepo := organization.NewPostgresRepo(db)
+	userRepo := user.NewPostgresRepo(db)
 
 	partSvc := participant.NewParticipantService(partRepo)
 	eventSvc := event.NewEventService(eventRepo)
 	orgSvc := organization.NewOrganizationService(orgRepo)
+	userSvc := user.NewUserService(userRepo)
 
 	handler.MakeParticipantHandler(r, partSvc, eventSvc)
+	handler.MakeUserHandler(r, userSvc)
 
 	//_ = orgSvc.SaveOrg(&organization.Organization{
 	//	Name:        "DSC VIT",
