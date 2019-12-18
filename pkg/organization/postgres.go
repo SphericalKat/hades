@@ -1,8 +1,8 @@
 package organization
 
 import (
+	"github.com/ATechnoHazard/hades-2/pkg"
 	"github.com/jinzhu/gorm"
-	"hades-2.0/pkg"
 )
 
 type repo struct {
