@@ -12,12 +12,11 @@ import (
 type JwtContextKey string
 
 type Token struct {
-	Email        string `json:"email"`
-	Role         string `json:"role"`
-	Organization string `json:"organization"`
+	Email string `json:"email"`
+	Role  string `json:"role"`
+	OrgID uint   `json:"org_id"`
 	jwt.StandardClaims
 }
-
 
 // JwtAuthentication middleware for authorizing endpoints
 func JwtAuthentication(next http.Handler) http.Handler {
@@ -39,8 +38,8 @@ func JwtAuthentication(next http.Handler) http.Handler {
 
 		if tokenHeader == "" { // Token is missing, returns with error code 403 Unauthorized
 			response = u.Message(http.StatusForbidden, "Missing auth token")
-			w.WriteHeader(http.StatusForbidden)
 			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
 			u.Respond(w, response)
 			return
 		}
@@ -53,16 +52,16 @@ func JwtAuthentication(next http.Handler) http.Handler {
 
 		if err != nil { // Malformed token, returns with http code 403 as usual
 			response = u.Message(http.StatusForbidden, "Malformed authentication token")
-			w.WriteHeader(http.StatusForbidden)
 			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
 			u.Respond(w, response)
 			return
 		}
 
 		if !token.Valid { // Token is invalid, maybe not signed on this server
 			response = u.Message(http.StatusForbidden, "Token is not valid.")
-			w.WriteHeader(http.StatusForbidden)
 			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
 			u.Respond(w, response)
 			return
 		}

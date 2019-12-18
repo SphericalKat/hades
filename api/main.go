@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/ATechnoHazard/hades-2/api/handler"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
@@ -40,13 +41,12 @@ func main() {
 	n.UseHandler(r)
 
 	db := connectDb()
-	log.Println(db)
 
 	partRepo := participant.NewPostgresRepo(db)
-	eventRepo := event.NewPostgresRepo(db)
+	//eventRepo := event.NewPostgresRepo(db)
 
 	partSvc := participant.NewParticipantService(partRepo)
-	eventSvc := event.NewEventService(eventRepo)
+	//eventSvc := event.NewEventService(eventRepo)
 	handler.MakeParticipantHandler(r, partSvc)
 
 	//_ = eventSvc.SaveEvent(&event.Event{
@@ -69,13 +69,15 @@ func main() {
 	//	FromTime:              time.Now(),
 	//})
 
-	e, _ := eventSvc.ReadEvent(1)
-	log.Println(e)
-	//partSvc.CreateAttendee()
 
-	log.Println("Listening on port 4000")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "4000"
+	}
 
-	err := http.ListenAndServe(":4000", n)
+	log.Println("Listening on port " + port)
+
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), n)
 	if err != nil {
 		log.Panic(err)
 	}

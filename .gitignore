@@ -19,3 +19,5 @@ hades-2.0
 
 .idea
 .env
+tmp
+api/main
