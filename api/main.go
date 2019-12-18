@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/ATechnoHazard/hades-2/api/handler"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
+	"github.com/ATechnoHazard/hades-2/pkg/organization"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
+	"github.com/ATechnoHazard/hades-2/pkg/user"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -34,55 +36,6 @@ func initNegroni() *negroni.Negroni {
 	return n
 }
 
-func main() {
-	r := mux.NewRouter()
-
-	n := initNegroni()
-	n.UseHandler(r)
-
-	db := connectDb()
-
-	partRepo := participant.NewPostgresRepo(db)
-	//eventRepo := event.NewPostgresRepo(db)
-
-	partSvc := participant.NewParticipantService(partRepo)
-	//eventSvc := event.NewEventService(eventRepo)
-	handler.MakeParticipantHandler(r, partSvc)
-
-	//_ = eventSvc.SaveEvent(&event.Event{
-	//	ID:                    1,
-	//	ClubName:              "DSC",
-	//	Name:                  "SOME",
-	//	Budget:                "69",
-	//	Description:           "OWO",
-	//	Category:              "NO",
-	//	Venue:                 "YES",
-	//	Attendance:            "DF",
-	//	ExpectedParticipants:  "sDF",
-	//	PROrequest:            "sdfsdf",
-	//	CampusEngineerRequest: "sdfsdf",
-	//	Duration:              "SFD",
-	//	Status:                "sdfsdf",
-	//	ToDate:                time.Now(),
-	//	FromDate:              time.Now(),
-	//	ToTime:                time.Now().Add(time.Hour),
-	//	FromTime:              time.Now(),
-	//})
-
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "4000"
-	}
-
-	log.Println("Listening on port " + port)
-
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), n)
-	if err != nil {
-		log.Panic(err)
-	}
-}
-
 func connectDb() *gorm.DB {
 	conn, err := pq.ParseURL(os.Getenv("DB_URI"))
 	if err != nil {
@@ -98,6 +51,65 @@ func connectDb() *gorm.DB {
 		db = db.Debug()
 	}
 
-	db.AutoMigrate(&participant.Participant{}, &event.Event{})
+	db.AutoMigrate(&participant.Participant{}, &event.Event{}, &organization.Organization{}, &user.User{})
 	return db
+}
+
+func main() {
+	r := mux.NewRouter()
+
+	n := initNegroni()
+	n.UseHandler(r)
+
+	db := connectDb()
+
+	partRepo := participant.NewPostgresRepo(db)
+	eventRepo := event.NewPostgresRepo(db)
+	orgRepo := organization.NewPostgresRepo(db)
+
+	partSvc := participant.NewParticipantService(partRepo)
+	eventSvc := event.NewEventService(eventRepo)
+	orgSvc := organization.NewOrganizationService(orgRepo)
+
+	handler.MakeParticipantHandler(r, partSvc, eventSvc)
+
+	//_ = orgSvc.SaveOrg(&organization.Organization{
+	//	Name:        "DSC VIT",
+	//	Location:    "Vellore",
+	//	Description: "The best",
+	//	Tag:         "#dscvit",
+	//	Website:     "dscvit.com",
+	//	CreatedAt:   time.Now(),
+	//})
+
+	//_ = eventSvc.SaveEvent(&event.Event{
+	//	ID:                    2,
+	//	OrganizationID:        1,
+	//	Name:                  "Leet haxx",
+	//	Budget:                "690000",
+	//	Description:           "Greatest hackathon ever",
+	//	Category:              "Hackathon",
+	//	Venue:                 "Some gallery",
+	//	Attendance:            "full",
+	//	ExpectedParticipants:  "5000",
+	//	ToDate:                time.Now(),
+	//	FromDate:              time.Now(),
+	//	ToTime:                time.Now().Add(time.Hour),
+	//	FromTime:              time.Now(),
+	//})
+
+	events, _ := orgSvc.GetOrgEvents(1)
+	log.Println(events)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "4000"
+	}
+
+	log.Println("Listening on port " + port)
+
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), n)
+	if err != nil {
+		log.Panic(err)
+	}
 }

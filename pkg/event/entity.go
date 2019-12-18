@@ -6,7 +6,7 @@ import (
 
 type Event struct {
 	ID                    uint       `json:"event_id" gorm:"primary_key;AUTO_INCREMENT"`
-	ClubName              string     `json:"club_name"`
+	OrganizationID        uint       `json:"org_id"`
 	Name                  string     `json:"name"`
 	Budget                string     `json:"budget"`
 	Description           string     `json:"description"`
@@ -14,7 +14,7 @@ type Event struct {
 	Venue                 string     `json:"venue"`
 	Attendance            string     `json:"attendance"`
 	ExpectedParticipants  string     `json:"expected_participants"`
-	PROrequest            string     `json:"PROrequest"`
+	PROrequest            string     `json:"pro_request"`
 	CampusEngineerRequest string     `json:"campus_engineer_request"`
 	Duration              string     `json:"duration"`
 	Status                string     `json:"status"`

@@ -1,32 +1,49 @@
 package organization
 
+import (
+	"github.com/ATechnoHazard/hades-2/pkg"
+	"github.com/ATechnoHazard/hades-2/pkg/event"
+	"github.com/dgrijalva/jwt-go"
+)
+
 type Service interface {
-	CreateOrganization(*Organization) error
-	GetOrganizations() ([]Organization, error)
-	UpdateOrganization(string, *Organization) error
-	DeleteOrganization(string) error
+	SaveOrg(org *Organization) error
+	GetAllOrgs() ([]Organization, error)
+	DelOrg(orgID uint) error
+	GetOrgEvents(orgID uint) ([]event.Event, error)
 }
 
-type organizationSvc struct {
+type orgSvc struct {
 	repo Repository
 }
 
 func NewOrganizationService(rp Repository) Service {
-	return &organizationSvc{repo: rp}
+	return &orgSvc{repo: rp}
 }
 
-func (sv *organizationSvc) CreateOrganization(organization *Organization) error {
-	return sv.repo.Create(organization)
+func (o *orgSvc) SaveOrg(organization *Organization) error {
+	return o.repo.Save(organization)
 }
 
-func (sv *organizationSvc) GetOrganizations() ([]Organization, error) {
-	return sv.repo.FindAll()
+func (o *orgSvc) GetAllOrgs() ([]Organization, error) {
+	return o.repo.FindAll()
 }
 
-func (sv *organizationSvc) UpdateOrganization(name string, organization *Organization) error {
-	return sv.repo.Update(name, organization)
+func (o *orgSvc) DelOrg(orgID uint) error {
+	return o.repo.Delete(orgID)
 }
 
-func (sv *organizationSvc) DeleteOrganization(name string) error {
-	return sv.repo.Delete(name)
+func (o *orgSvc) GetOrgEvents(orgID uint) ([]event.Event, error) {
+	org, err := o.repo.Find(orgID)
+	if err != nil {
+		return nil, err
+	}
+
+	return org.Events, err
+}
+
+func (o *orgSvc) LoginOrg(orgID uint, email string) (*jwt.Token, error) {
+
+	return nil, pkg.ErrNotFound
+
 }

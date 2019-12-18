@@ -13,25 +13,21 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 	return &repo{DB: db}
 }
 
-func (rp *repo) Create(organization *Organization) error {
-	_, err := rp.Find(organization.Name)
+func (r *repo) Save(organization *Organization) error {
+	err := r.DB.Save(organization).Error
 	switch err {
 	case nil:
-		return pkg.ErrAlreadyExists
-	case pkg.ErrNotFound:
-		err = rp.DB.Save(organization).Error
-		if err != nil {
-			return pkg.ErrDatabase
-		}
-		return err
+		return nil
+	case gorm.ErrRecordNotFound:
+		return pkg.ErrNotFound
 	default:
 		return pkg.ErrDatabase
 	}
 }
 
-func (rp *repo) Find(name string) (*Organization, error) {
-	org := &Organization{}
-	err := rp.DB.Where("name = ?", name).Find(org).Error
+func (r *repo) Find(orgID uint) (*Organization, error) {
+	org := &Organization{ID: orgID}
+	err := r.DB.Find(org).Association("Events").Find(&org.Events).Error
 	switch err {
 	case gorm.ErrRecordNotFound:
 		return nil, pkg.ErrNotFound
@@ -42,34 +38,18 @@ func (rp *repo) Find(name string) (*Organization, error) {
 	}
 }
 
-func (rp *repo) FindAll() ([]Organization, error) {
+func (r *repo) FindAll() ([]Organization, error) {
 	var organizations []Organization
-	err := rp.DB.Model(Organization{}).Find(&organizations).Error
+	err := r.DB.Model(Organization{}).Find(&organizations).Error
 	return organizations, err
 }
 
-func (rp *repo) Delete(name string) error {
-	err := rp.DB.Where("name = ?", name).Delete(&Organization{}).Error
+func (r *repo) Delete(orgID uint) error {
+	err := r.DB.Delete(&Organization{ID: orgID}).Error
 	switch err {
 	case gorm.ErrRecordNotFound:
 		return pkg.ErrNotFound
 	case nil:
-		return nil
-	default:
-		return pkg.ErrDatabase
-	}
-}
-
-func (rp *repo) Update(name string, organization *Organization) error {
-	tx := rp.DB.Begin()
-
-	err := tx.Save(organization).Error
-	switch err {
-	case gorm.ErrRecordNotFound:
-		tx.Rollback()
-		return pkg.ErrNotFound
-	case nil:
-		tx.Commit()
 		return nil
 	default:
 		return pkg.ErrDatabase

@@ -45,11 +45,11 @@ func (r *repo) Save(participant *Participant, eventID uint) error {
 	e := &event.Event{ID: eventID}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {
-		tx.Commit()
+		tx.Rollback()
 		return pkg.ErrNotFound
 	}
 
-	err := tx.Save(participant).Error
+	err := tx.Unscoped().Save(participant).Error
 	if err != nil {
 		tx.Rollback()
 		switch err {
@@ -87,7 +87,7 @@ func (r *repo) RemoveAttendeeEvent(regNo string, eventID uint) error {
 	p := &Participant{RegNo: regNo}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {
-		tx.Commit()
+		tx.Rollback()
 		return pkg.ErrNotFound
 	}
 	if tx.Find(p).Error == gorm.ErrRecordNotFound {
