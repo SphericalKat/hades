@@ -18,3 +18,4 @@ hades-2.0
 # vendor/
 
 .idea
+.env
