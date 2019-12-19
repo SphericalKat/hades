@@ -22,10 +22,6 @@ func acceptJoinRequest(oSvc organization.Service) http.HandlerFunc {
 	}
 }
 
-func sendJoinRequest(oSvc organization.Service) http.HandlerFunc {
-
-}
-
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
 	r.HandlerFunc("POST","/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
 }

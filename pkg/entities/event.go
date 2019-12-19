@@ -1,4 +1,4 @@
-package event
+package entities
 
 import (
 	"time"
@@ -23,5 +23,5 @@ type Event struct {
 	ToTime                time.Time  `json:"to_time"`
 	FromTime              time.Time  `json:"from_time"`
 	DeletedAt             *time.Time `json:"-" sql:"index"`
-	//Attendees             []participant.Participant `json:"attendees" gorm:"many2many:participant_events;"`
+	Attendees             []Participant `json:"attendees" gorm:"many2many:participant_events;"`
 }

@@ -1,6 +1,8 @@
 package views
 
-import "github.com/ATechnoHazard/hades-2/pkg/participant"
+import (
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
+)
 
 type Participant struct {
 	Name        string        `json:"name"`
@@ -11,8 +13,8 @@ type Participant struct {
 	EventId     uint          `json:"event_id"`
 }
 
-func (p Participant) Transform() *participant.Participant {
-	return &participant.Participant{
+func (p Participant) Transform() *entities.Participant {
+	return &entities.Participant{
 		Name:        p.Name,
 		RegNo:       p.RegNo,
 		Email:       p.Email,

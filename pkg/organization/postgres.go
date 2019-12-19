@@ -2,7 +2,7 @@ package organization
 
 import (
 	"github.com/ATechnoHazard/hades-2/pkg"
-	"github.com/ATechnoHazard/hades-2/pkg/user"
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/jinzhu/gorm"
 )
 
@@ -10,7 +10,7 @@ type repo struct {
 	DB *gorm.DB
 }
 
-func (r *repo) Save(organization *Organization) error {
+func (r *repo) Save(organization *entities.Organization) error {
 	err := r.DB.Save(organization).Error
 	switch err {
 	case nil:
@@ -22,8 +22,8 @@ func (r *repo) Save(organization *Organization) error {
 	}
 }
 
-func (r *repo) Find(orgID uint) (*Organization, error) {
-	org := &Organization{ID: orgID}
+func (r *repo) Find(orgID uint) (*entities.Organization, error) {
+	org := &entities.Organization{ID: orgID}
 	err := r.DB.Find(org).Association("Events").Find(&org.Events).Error
 	switch err {
 	case gorm.ErrRecordNotFound:
@@ -35,14 +35,14 @@ func (r *repo) Find(orgID uint) (*Organization, error) {
 	}
 }
 
-func (r *repo) FindAll() ([]Organization, error) {
-	var organizations []Organization
-	err := r.DB.Model(Organization{}).Find(&organizations).Error
+func (r *repo) FindAll() ([]entities.Organization, error) {
+	var organizations []entities.Organization
+	err := r.DB.Model(entities.Organization{}).Find(&organizations).Error
 	return organizations, err
 }
 
 func (r *repo) Delete(orgID uint) error {
-	err := r.DB.Delete(&Organization{ID: orgID}).Error
+	err := r.DB.Delete(&entities.Organization{ID: orgID}).Error
 	switch err {
 	case gorm.ErrRecordNotFound:
 		return pkg.ErrNotFound
@@ -53,9 +53,9 @@ func (r *repo) Delete(orgID uint) error {
 	}
 }
 
-func (r *repo) SaveJoinReq(request *JoinRequest) error {
+func (r *repo) SaveJoinReq(request *entities.JoinRequest) error {
 	tx := r.DB.Begin()
-	u := &user.User{Email: request.Email}
+	u := &entities.User{Email: request.Email}
 	if tx.Find(u).Error == gorm.ErrRecordNotFound {
 		tx.Rollback()
 		return pkg.ErrNotFound
@@ -83,8 +83,8 @@ func (r *repo) SaveJoinReq(request *JoinRequest) error {
 	}
 }
 
-func (r *repo) FindAllJoinReq(orgID uint) ([]JoinRequest, error) {
-	org := &Organization{ID: orgID}
+func (r *repo) FindAllJoinReq(orgID uint) ([]entities.JoinRequest, error) {
+	org := &entities.Organization{ID: orgID}
 	err := r.DB.Find(org).Association("JoinRequests").Find(&org.JoinRequests).Error
 	switch err {
 	case nil:
@@ -96,10 +96,10 @@ func (r *repo) FindAllJoinReq(orgID uint) ([]JoinRequest, error) {
 	}
 }
 
-func (r *repo) AcceptJoinReq(request *JoinRequest) error {
+func (r *repo) AcceptJoinReq(request *entities.JoinRequest) error {
 	tx := r.DB.Begin()
-	u := &user.User{Email: request.Email}
-	org := &Organization{ID: request.OrganizationID}
+	u := &entities.User{Email: request.Email}
+	org := &entities.Organization{ID: request.OrganizationID}
 	err := tx.Find(request).Error
 	if err != nil {
 		tx.Rollback()

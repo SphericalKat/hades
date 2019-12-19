@@ -1,8 +1,10 @@
 package event
 
+import "github.com/ATechnoHazard/hades-2/pkg/entities"
+
 type Service interface {
-	SaveEvent(event *Event) error
-	ReadEvent(eventID uint) (*Event, error)
+	SaveEvent(event *entities.Event) error
+	ReadEvent(eventID uint) (*entities.Event, error)
 	DeleteEvent(eventID uint) error
 }
 
@@ -14,11 +16,11 @@ func NewEventService(r Repository) Service {
 	return &eventSvc{repo: r}
 }
 
-func (e *eventSvc) SaveEvent(event *Event) error {
+func (e *eventSvc) SaveEvent(event *entities.Event) error {
 	return e.repo.Save(event)
 }
 
-func (e *eventSvc) ReadEvent(eventID uint) (*Event, error) {
+func (e *eventSvc) ReadEvent(eventID uint) (*entities.Event, error) {
 	return e.repo.Find(eventID)
 }
 

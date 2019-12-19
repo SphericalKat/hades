@@ -1,7 +1,6 @@
-package user
+package entities
 
 import (
-	"github.com/ATechnoHazard/hades-2/pkg/organization"
 	"time"
 )
 
@@ -16,5 +15,5 @@ type User struct {
 	Description   string                      `json:"description"`
 	CreatedAt     time.Time                   `json:"created_at"`
 	DeviceToken   string                      `json:"device_token"`
-	Organizations []organization.Organization `json:"-" gorm:"many2many:user_orgs;"`
+	Organizations []Organization `json:"-" gorm:"many2many:user_orgs;"`
 }

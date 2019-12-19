@@ -5,6 +5,7 @@ import (
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/user"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 
 func signUp(uSvc user.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		acc := &user.User{}
+		acc := &entities.User{}
 		if err := json.NewDecoder(r.Body).Decode(acc); err != nil {
 			views.Wrap(err, w)
 			return
@@ -41,7 +42,7 @@ func signUp(uSvc user.Service) http.HandlerFunc {
 
 func login(uSvc user.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		acc := &user.User{}
+		acc := &entities.User{}
 		if err := json.NewDecoder(r.Body).Decode(acc); err != nil {
 			views.Wrap(err, w)
 			return

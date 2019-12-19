@@ -1,7 +1,6 @@
-package organization
+package entities
 
 import (
-	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"time"
 )
 
@@ -14,8 +13,9 @@ type Organization struct {
 	Website      string        `json:"website"`
 	CreatedAt    time.Time     `json:"created_at"`
 	DeletedAt    *time.Time    `sql:"index"`
-	Events       []event.Event `json:"-"`
+	Events       []Event       `json:"-"`
 	JoinRequests []JoinRequest `json:"-"`
+	Users        []User        `json:"-" gorm:"many2many:user_orgs;"`
 }
 
 type JoinRequest struct {
