@@ -27,6 +27,7 @@ func (r *repo) Find(orgID uint) (*entities.Organization, error) {
 	tx := r.DB.Begin()
 	err := tx.Find(org).Association("Events").Find(&org.Events).Error
 	if err != nil {
+		tx.Rollback()
 		switch err {
 		case gorm.ErrRecordNotFound:
 			return nil, pkg.ErrNotFound
@@ -36,12 +37,26 @@ func (r *repo) Find(orgID uint) (*entities.Organization, error) {
 	}
 
 	err = tx.Find(org).Association("Users").Find(&org.Users).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return nil, pkg.ErrNotFound
+		default:
+			return nil, pkg.ErrDatabase
+		}
+	}
+
+	err = tx.Find(org).Association("JoinRequests").Find(&org.JoinRequests).Error
 	switch err {
 	case nil:
+		tx.Commit()
 		return org, nil
 	case gorm.ErrRecordNotFound:
+		tx.Rollback()
 		return nil, pkg.ErrNotFound
 	default:
+		tx.Rollback()
 		return nil, pkg.ErrDatabase
 	}
 }

@@ -16,6 +16,7 @@ type Service interface {
 	GetAllJoinReqs(orgID uint) ([]entities.JoinRequest, error)
 	AcceptJoinReq(orgID uint, email string) error
 	LoginOrg(orgID uint, email string) (*jwt.Token, error)
+	GetOrgJoinReqs(orgID uint) ([]entities.JoinRequest, error)
 }
 
 type orgSvc struct {
@@ -74,4 +75,13 @@ func (o *orgSvc) LoginOrg(orgID uint, email string) (*jwt.Token, error) {
 	}
 
 	return nil, pkg.ErrNotFound
+}
+
+func (o *orgSvc) GetOrgJoinReqs(orgID uint) ([]entities.JoinRequest, error) {
+	org, err := o.repo.Find(orgID)
+	if err != nil {
+		return nil, err
+	}
+
+	return org.JoinRequests, err
 }
