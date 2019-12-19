@@ -7,10 +7,10 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
 	"github.com/ATechnoHazard/hades-2/pkg/user"
-	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
+	"github.com/julienschmidt/httprouter"
 	"github.com/lib/pq"
 	negronilogrus "github.com/meatballhat/negroni-logrus"
 	log "github.com/sirupsen/logrus"
@@ -56,7 +56,7 @@ func connectDb() *gorm.DB {
 }
 
 func main() {
-	r := mux.NewRouter()
+	r := httprouter.New()
 
 	n := initNegroni()
 	n.UseHandler(r)

@@ -5,7 +5,7 @@ import (
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
@@ -26,6 +26,6 @@ func sendJoinRequest(oSvc organization.Service) http.HandlerFunc {
 
 }
 
-func MakeOrgHandler(r *mux.Router, oSvc organization.Service) {
-	r.Handle("/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
+func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
+	r.HandlerFunc("POST","/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/user"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"os"
 	"time"
@@ -82,8 +82,8 @@ func getUserOrgs(uSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func MakeUserHandler(r *mux.Router, uSvc user.Service) {
-	r.Handle("/api/v1/org/signup", signUp(uSvc)).Methods("POST")
-	r.Handle("/api/v1/org/login", login(uSvc)).Methods("POST")
-	r.Handle("/api/v1/org/", middleware.JwtAuthentication(getUserOrgs(uSvc))).Methods("GET")
+func MakeUserHandler(r *httprouter.Router, uSvc user.Service) {
+	r.HandlerFunc("POST", "/api/v1/org/signup", signUp(uSvc))
+	r.HandlerFunc("POST", "/api/v1/org/login", login(uSvc))
+	r.HandlerFunc("GET", "/api/v1/org/", middleware.JwtAuthentication(getUserOrgs(uSvc)))
 }

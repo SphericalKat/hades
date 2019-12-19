@@ -7,7 +7,7 @@ import (
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
@@ -120,18 +120,18 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 	}
 }
 
-func MakeParticipantHandler(r *mux.Router, partSvc participant.Service, eventSvc event.Service) {
-	r.Handle("/api/v1/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func MakeParticipantHandler(r *httprouter.Router, partSvc participant.Service, eventSvc event.Service) {
+	r.HandlerFunc("GET", "/api/v1/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
-	})).Methods("GET")
+	}))
 
-	r.Handle("/api/v1/participants/create-attendee",
-		middleware.JwtAuthentication(createAttendee(partSvc, eventSvc))).Methods("POST")
-	r.Handle("/api/v1/participants/delete-attendee",
-		middleware.JwtAuthentication(deleteAttendee(partSvc, eventSvc))).Methods("POST")
-	r.Handle("/api/v1/participants/read-attendee",
-		middleware.JwtAuthentication(readAttendee(partSvc))).Methods("GET")
-	r.Handle("/api/v1/participants/rm-attendee",
-		middleware.JwtAuthentication(rmAttendeeEvent(partSvc, eventSvc))).Methods("POST")
+	r.HandlerFunc("POST", "/api/v1/participants/create-attendee",
+		middleware.JwtAuthentication(createAttendee(partSvc, eventSvc)))
+	r.HandlerFunc("POST", "/api/v1/participants/delete-attendee",
+		middleware.JwtAuthentication(deleteAttendee(partSvc, eventSvc)))
+	r.HandlerFunc("GET", "/api/v1/participants/read-attendee",
+		middleware.JwtAuthentication(readAttendee(partSvc)))
+	r.HandlerFunc("POST", "/api/v1/participants/rm-attendee",
+		middleware.JwtAuthentication(rmAttendeeEvent(partSvc, eventSvc)))
 }
