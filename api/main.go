@@ -60,7 +60,6 @@ func main() {
 
 	n := initNegroni()
 	n.UseHandler(r)
-
 	db := connectDb()
 
 	partRepo := participant.NewPostgresRepo(db)

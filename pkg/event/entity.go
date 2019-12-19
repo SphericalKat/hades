@@ -24,7 +24,4 @@ type Event struct {
 	FromTime              time.Time  `json:"from_time"`
 	DeletedAt             *time.Time `json:"-" sql:"index"`
 	//Attendees             []participant.Participant `json:"attendees" gorm:"many2many:participant_events;"`
-	// MainSponsor           Participant `json:"mainSponsor"`
-	//StudentCoordinator    Participant `json:"studentCoordinator"`
-	//FacultyCoordinator    Participant `json:"facultyCoordinator"`
 }

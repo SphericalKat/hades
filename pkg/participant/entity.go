@@ -13,5 +13,4 @@ type Participant struct {
 	Gender      string        `json:"gender"`
 	DeletedAt   *time.Time    `json:"-" sql:"index"`
 	Events      []event.Event `json:"-" gorm:"many2many:participant_events;"`
-	EventId     uint          `json:"event_id" gorm:"-"`
 }

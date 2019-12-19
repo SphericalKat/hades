@@ -19,20 +19,8 @@ type Token struct {
 }
 
 // JwtAuthentication middleware for authorizing endpoints
-func JwtAuthentication(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		//notAuth := []string{"/api/v1/admin/ping", "/api/v1/participants/save-attendee"}   // List of endpoints that doesn't require auth
-		//requestPath := r.URL.Path // Current request path
-
-		// Check if request does not need authentication, serve the request if it doesn't need it
-		//for _, value := range notAuth {
-		//	if value == requestPath {
-		//		next.ServeHTTP(w, r)
-		//		return
-		//	}
-		//}
-
+func JwtAuthentication(next http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		var response map[string]interface{}
 		tokenHeader := r.Header.Get("Authorization") // Grab the token from the header
 
@@ -70,5 +58,5 @@ func JwtAuthentication(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), JwtContextKey("token"), tk)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r) // proceed in the middleware chain
-	})
+	}
 }
