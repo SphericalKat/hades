@@ -1,7 +1,7 @@
 package guest
 
 type Service interface {
-	CreateGuest(*Guest) error
+	SaveGuest(*Guest) error
 	GetGuest(string) (*Guest, error)
 	GetAllGuests() ([]Guest, error)
 	DeleteGuest(string) error
@@ -15,7 +15,7 @@ func NewGuestService(repo Repository) Service {
 	return &guestSvc{repo: repo}
 }
 
-func (s *guestSvc) CreateGuest(guest *Guest) error {
+func (s *guestSvc) SaveGuest(guest *Guest) error {
 	return s.repo.Save(guest)
 }
 

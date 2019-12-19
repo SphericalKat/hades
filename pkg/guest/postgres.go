@@ -47,13 +47,10 @@ func (r *repo) Save(guest *Guest) error {
 }
 
 func (r *repo) Delete(email string) error {
-	tx := r.DB.Begin()
-	err := tx.Where("email = ?", email).Delete(&Guest{}).Error
+	err := r.DB.Where("email = ?", email).Delete(&Guest{}).Error
 	if err != nil {
-		tx.Rollback()
 		return pkg.ErrDatabase
 	}
-	tx.Commit()
 	return nil
 }
 
