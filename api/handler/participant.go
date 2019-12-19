@@ -108,6 +108,7 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 		}
 		if e.OrganizationID != tk.OrgID {
 			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
 		}
 
 		if err := pSvc.RemoveAttendeeEvent(p.RegNo, p.EventId); err != nil {

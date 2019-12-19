@@ -1,10 +1,13 @@
 package guest
 
+import "github.com/ATechnoHazard/hades-2/pkg/entities"
+
 type Service interface {
-	SaveGuest(*Guest) error
-	GetGuest(string) (*Guest, error)
-	GetAllGuests() ([]Guest, error)
+	SaveGuestEvent(*entities.Guest, uint) error
+	GetGuestEvent(string, uint) (*entities.Guest, error)
+	GetAllGuestEvent(uint) ([]entities.Guest, error)
 	DeleteGuest(string) error
+	RemoveGuestEvent(string, uint) error
 }
 
 type guestSvc struct {
@@ -15,18 +18,22 @@ func NewGuestService(repo Repository) Service {
 	return &guestSvc{repo: repo}
 }
 
-func (s *guestSvc) SaveGuest(guest *Guest) error {
-	return s.repo.Save(guest)
+func (s *guestSvc) SaveGuestEvent(guest *entities.Guest, eventId uint) error {
+	return s.repo.SaveGuestEvent(guest, eventId)
 }
 
-func (s *guestSvc) GetGuest(email string) (*Guest, error) {
-	return s.repo.Find(email)
+func (s *guestSvc) GetGuestEvent(email string, eventId uint) (*entities.Guest, error) {
+	return s.repo.FindGuestEvent(email, eventId)
 }
 
-func (s *guestSvc) GetAllGuests() ([]Guest, error) {
-	return s.repo.FindAll()
+func (s *guestSvc) GetAllGuestEvent(eventId uint) ([]entities.Guest, error) {
+	return s.repo.FindAllGuestEvent(eventId)
 }
 
 func (s *guestSvc) DeleteGuest(email string) error {
 	return s.repo.Delete(email)
+}
+
+func (s *guestSvc) RemoveGuestEvent(email string, eventId uint) error {
+	return s.repo.RemoveGuestEvent(email, eventId)
 }
