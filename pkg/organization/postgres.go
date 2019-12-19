@@ -10,15 +10,15 @@ type repo struct {
 	DB *gorm.DB
 }
 
-func (r *repo) Save(organization *entities.Organization) error {
+func (r *repo) Save(organization *entities.Organization) (*entities.Organization, error) {
 	err := r.DB.Save(organization).Error
 	switch err {
 	case nil:
-		return nil
+		return organization, nil
 	case gorm.ErrRecordNotFound:
-		return pkg.ErrNotFound
+		return nil, pkg.ErrNotFound
 	default:
-		return pkg.ErrDatabase
+		return nil, pkg.ErrDatabase
 	}
 }
 

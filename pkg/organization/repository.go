@@ -3,7 +3,7 @@ package organization
 import "github.com/ATechnoHazard/hades-2/pkg/entities"
 
 type Repository interface {
-	Save(organization *entities.Organization) error
+	Save(organization *entities.Organization) (*entities.Organization, error)
 	FindAll() ([]entities.Organization, error)
 	Find(orgID uint) (*entities.Organization, error)
 	Delete(orgID uint) error

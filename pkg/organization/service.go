@@ -8,7 +8,7 @@ import (
 )
 
 type Service interface {
-	SaveOrg(org *entities.Organization) error
+	SaveOrg(org *entities.Organization) (*entities.Organization, error)
 	GetAllOrgs() ([]entities.Organization, error)
 	DelOrg(orgID uint) error
 	GetOrgEvents(orgID uint) ([]entities.Event, error)
@@ -17,6 +17,7 @@ type Service interface {
 	AcceptJoinReq(orgID uint, email string) error
 	LoginOrg(orgID uint, email string) (*jwt.Token, error)
 	GetOrgJoinReqs(orgID uint) ([]entities.JoinRequest, error)
+	FindOrg(orgID uint) (*entities.Organization, error)
 }
 
 type orgSvc struct {
@@ -39,7 +40,7 @@ func (o *orgSvc) SendJoinRequest(orgID uint, email string) error {
 	return o.repo.SaveJoinReq(&entities.JoinRequest{OrganizationID: orgID, Email: email})
 }
 
-func (o *orgSvc) SaveOrg(organization *entities.Organization) error {
+func (o *orgSvc) SaveOrg(organization *entities.Organization) (*entities.Organization, error) {
 	return o.repo.Save(organization)
 }
 
@@ -84,4 +85,13 @@ func (o *orgSvc) GetOrgJoinReqs(orgID uint) ([]entities.JoinRequest, error) {
 	}
 
 	return org.JoinRequests, err
+}
+
+func (o *orgSvc) FindOrg(orgID uint) (*entities.Organization, error) {
+	org, err := o.repo.Find(orgID)
+	if err != nil {
+		return nil, err
+	}
+
+	return org, err
 }

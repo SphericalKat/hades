@@ -119,11 +119,49 @@ func viewJoinRequests(oSvc organization.Service) http.HandlerFunc {
 	}
 }
 
+func createOrg(oSvc organization.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		org := &entities.Organization{}
+		ctx := r.Context()
+		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		if err := json.NewDecoder(r.Body).Decode(org); err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		org, err := oSvc.SaveOrg(org)
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		tkn, err := oSvc.LoginOrg(org.ID, tk.Email)
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		tkString, err := tkn.SignedString([]byte(os.Getenv("TOKEN_PASSWORD")))
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		msg := u.Message(http.StatusOK, "Organization created successfully")
+		msg["token"] = tkString
+		msg["org"] = org
+
+		u.Respond(w, msg)
+		return
+	}
+}
+
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
 	r.HandlerFunc("POST", "/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v1/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v1/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v1/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
 	r.HandlerFunc("GET", "/api/v1/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
-	r.HandlerFunc("GET", "/api/v1/org/view-req", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
+	r.HandlerFunc("GET", "/api/v1/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
+	r.HandlerFunc("GET", "/api/v1/org/create", middleware.JwtAuthentication(createOrg(oSvc)))
 }
