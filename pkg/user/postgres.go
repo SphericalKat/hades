@@ -28,7 +28,7 @@ func (r *repo) Create(user *entities.User) error {
 
 func (r *repo) Find(email string) (*entities.User, error) {
 	user := &entities.User{Email: email}
-	err := r.DB.Find(user).Error
+	err := r.DB.Find(user).Association("Organizations").Find(&user.Organizations).Error
 
 	switch err {
 	case nil:

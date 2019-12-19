@@ -52,7 +52,8 @@ func connectDb() *gorm.DB {
 		db = db.Debug()
 	}
 
-	db.AutoMigrate(&entities.Participant{}, &entities.Event{}, &entities.Organization{}, &entities.User{})
+	db.AutoMigrate(&entities.Participant{}, &entities.Event{}, &entities.Organization{}, &entities.User{},
+		entities.JoinRequest{})
 	return db
 }
 
@@ -75,6 +76,7 @@ func main() {
 
 	handler.MakeParticipantHandler(r, partSvc, eventSvc)
 	handler.MakeUserHandler(r, userSvc)
+	handler.MakeOrgHandler(r, orgSvc)
 
 	//_ = orgSvc.SaveOrg(&organization.Organization{
 	//	Name:        "DSC VIT",
@@ -101,8 +103,8 @@ func main() {
 	//	FromTime:              time.Now(),
 	//})
 
-	events, _ := orgSvc.GetOrgEvents(1)
-	log.Println(events)
+	//events, _ := orgSvc.GetOrgEvents(1)
+	//log.Println(events)
 
 	port := os.Getenv("PORT")
 	if port == "" {
