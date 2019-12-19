@@ -83,8 +83,27 @@ func loginOrg(oSvc organization.Service) http.HandlerFunc {
 	}
 }
 
+func getOrgEvents(oSvc organization.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		tkn := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+
+		events, err := oSvc.GetOrgEvents(tkn.OrgID)
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		msg := u.Message(http.StatusOK, "Successfully retrieved events")
+		msg["events"] = events
+		u.Respond(w, msg)
+		return
+	}
+}
+
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
 	r.HandlerFunc("POST", "/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v1/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v1/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
+	r.HandlerFunc("GET", "/api/v1/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
 }
