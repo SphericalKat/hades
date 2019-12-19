@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/ATechnoHazard/hades-2/pkg"
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/jinzhu/gorm"
 )
 
@@ -13,7 +14,7 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 	return &repo{DB: db}
 }
 
-func (r *repo) Create(user *User) error {
+func (r *repo) Create(user *entities.User) error {
 	err := r.DB.Save(user).Error
 	switch err {
 	case nil:
@@ -25,9 +26,9 @@ func (r *repo) Create(user *User) error {
 	}
 }
 
-func (r *repo) Find(email string) (*User, error) {
-	user := &User{Email: email}
-	err := r.DB.Find(user).Association("Organizations").Find(user.Organizations).Error
+func (r *repo) Find(email string) (*entities.User, error) {
+	user := &entities.User{Email: email}
+	err := r.DB.Find(user).Association("Organizations").Find(&user.Organizations).Error
 
 	switch err {
 	case nil:
@@ -40,7 +41,7 @@ func (r *repo) Find(email string) (*User, error) {
 }
 
 func (r *repo) Delete(email string) error {
-	user := &User{Email: email}
+	user := &entities.User{Email: email}
 	err := r.DB.Delete(user).Error
 	switch err {
 	case nil:

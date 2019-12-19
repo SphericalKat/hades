@@ -2,6 +2,7 @@ package event
 
 import (
 	"github.com/ATechnoHazard/hades-2/pkg"
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/jinzhu/gorm"
 )
 
@@ -14,8 +15,8 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 }
 
 
-func (r *repo) Find(eventID uint) (*Event, error) {
-	event := &Event{ID: eventID}
+func (r *repo) Find(eventID uint) (*entities.Event, error) {
+	event := &entities.Event{ID: eventID}
 	err := r.DB.Find(event).Error
 	switch err {
 	case nil:
@@ -27,7 +28,7 @@ func (r *repo) Find(eventID uint) (*Event, error) {
 	}
 }
 
-func (r *repo) Save(event *Event) error {
+func (r *repo) Save(event *entities.Event) error {
 	err := r.DB.Save(event).Error
 	switch err {
 	case nil:
@@ -40,7 +41,7 @@ func (r *repo) Save(event *Event) error {
 }
 
 func (r *repo) Delete(eventID uint) error {
-	err := r.DB.Where("event_id = ?", eventID).Delete(&Event{}).Error
+	err := r.DB.Where("event_id = ?", eventID).Delete(&entities.Event{}).Error
 	switch err {
 	case nil:
 		return nil

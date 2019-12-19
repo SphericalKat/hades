@@ -2,7 +2,7 @@ package participant
 
 import (
 	"github.com/ATechnoHazard/hades-2/pkg"
-	"github.com/ATechnoHazard/hades-2/pkg/event"
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/jinzhu/gorm"
 )
 
@@ -14,9 +14,9 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 	return &repo{DB: db}
 }
 
-func (r *repo) FindAll() ([]Participant, error) {
-	var participants []Participant
-	err := r.DB.Model(Participant{}).Find(&participants).Error
+func (r *repo) FindAll() ([]entities.Participant, error) {
+	var participants []entities.Participant
+	err := r.DB.Model(entities.Participant{}).Find(&participants).Error
 	switch err {
 	case nil:
 		return participants, nil
@@ -27,8 +27,8 @@ func (r *repo) FindAll() ([]Participant, error) {
 	}
 }
 
-func (r *repo) FindByRegNo(regNo string) (*Participant, error) {
-	p := &Participant{}
+func (r *repo) FindByRegNo(regNo string) (*entities.Participant, error) {
+	p := &entities.Participant{}
 	err := r.DB.Where("reg_no = ?", regNo).Find(p).Error
 	switch err {
 	case nil:
@@ -40,9 +40,9 @@ func (r *repo) FindByRegNo(regNo string) (*Participant, error) {
 	}
 }
 
-func (r *repo) Save(participant *Participant, eventID uint) error {
+func (r *repo) Save(participant *entities.Participant, eventID uint) error {
 	tx := r.DB.Begin()
-	e := &event.Event{ID: eventID}
+	e := &entities.Event{ID: eventID}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {
 		tx.Rollback()
@@ -70,7 +70,7 @@ func (r *repo) Save(participant *Participant, eventID uint) error {
 }
 
 func (r *repo) Delete(regNo string) error {
-	err := r.DB.Where("reg_no = ?", regNo).Delete(&Participant{}).Error
+	err := r.DB.Where("reg_no = ?", regNo).Delete(&entities.Participant{}).Error
 	switch err {
 	case nil:
 		return nil
@@ -83,8 +83,8 @@ func (r *repo) Delete(regNo string) error {
 
 func (r *repo) RemoveAttendeeEvent(regNo string, eventID uint) error {
 	tx := r.DB.Begin()
-	e := &event.Event{ID: eventID}
-	p := &Participant{RegNo: regNo}
+	e := &entities.Event{ID: eventID}
+	p := &entities.Participant{RegNo: regNo}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {
 		tx.Rollback()

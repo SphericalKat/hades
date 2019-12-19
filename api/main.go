@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"github.com/ATechnoHazard/hades-2/api/handler"
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
 	"github.com/ATechnoHazard/hades-2/pkg/user"
-	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
+	"github.com/julienschmidt/httprouter"
 	"github.com/lib/pq"
 	negronilogrus "github.com/meatballhat/negroni-logrus"
 	log "github.com/sirupsen/logrus"
@@ -51,27 +52,31 @@ func connectDb() *gorm.DB {
 		db = db.Debug()
 	}
 
-	db.AutoMigrate(&participant.Participant{}, &event.Event{}, &organization.Organization{}, &user.User{})
+	db.AutoMigrate(&entities.Participant{}, &entities.Event{}, &entities.Organization{}, &entities.User{},
+		entities.JoinRequest{})
 	return db
 }
 
 func main() {
-	r := mux.NewRouter()
+	r := httprouter.New()
 
 	n := initNegroni()
 	n.UseHandler(r)
-
 	db := connectDb()
 
 	partRepo := participant.NewPostgresRepo(db)
 	eventRepo := event.NewPostgresRepo(db)
 	orgRepo := organization.NewPostgresRepo(db)
+	userRepo := user.NewPostgresRepo(db)
 
 	partSvc := participant.NewParticipantService(partRepo)
 	eventSvc := event.NewEventService(eventRepo)
 	orgSvc := organization.NewOrganizationService(orgRepo)
+	userSvc := user.NewUserService(userRepo)
 
 	handler.MakeParticipantHandler(r, partSvc, eventSvc)
+	handler.MakeUserHandler(r, userSvc)
+	handler.MakeOrgHandler(r, orgSvc)
 
 	//_ = orgSvc.SaveOrg(&organization.Organization{
 	//	Name:        "DSC VIT",
@@ -98,8 +103,8 @@ func main() {
 	//	FromTime:              time.Now(),
 	//})
 
-	events, _ := orgSvc.GetOrgEvents(1)
-	log.Println(events)
+	//events, _ := orgSvc.GetOrgEvents(1)
+	//log.Println(events)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -7,11 +7,11 @@ import (
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
-func CreateAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
+func createAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &views.Participant{}
 		ctx := r.Context()
@@ -41,7 +41,7 @@ func CreateAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 	}
 }
 
-func DeleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
+func deleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &views.Participant{}
 		ctx := r.Context()
@@ -70,7 +70,7 @@ func DeleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 	}
 }
 
-func ReadAttendee(pSvc participant.Service) http.HandlerFunc {
+func readAttendee(pSvc participant.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		regNo, ok := r.URL.Query()["reg_no"]
 		if !ok || len(regNo) < 1 {
@@ -91,7 +91,7 @@ func ReadAttendee(pSvc participant.Service) http.HandlerFunc {
 	}
 }
 
-func RmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
+func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &views.Participant{}
 		ctx := r.Context()
@@ -120,18 +120,18 @@ func RmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 	}
 }
 
-func MakeParticipantHandler(r *mux.Router, partSvc participant.Service, eventSvc event.Service) {
-	r.Handle("/api/v1/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func MakeParticipantHandler(r *httprouter.Router, partSvc participant.Service, eventSvc event.Service) {
+	r.HandlerFunc("GET", "/api/v1/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
-	})).Methods("GET")
+	}))
 
-	r.Handle("/api/v1/participants/create-attendee",
-		middleware.JwtAuthentication(CreateAttendee(partSvc, eventSvc))).Methods("POST")
-	r.Handle("/api/v1/participants/delete-attendee",
-		middleware.JwtAuthentication(DeleteAttendee(partSvc, eventSvc))).Methods("POST")
-	r.Handle("/api/v1/participants/read-attendee",
-		middleware.JwtAuthentication(ReadAttendee(partSvc))).Methods("GET")
-	r.Handle("/api/v1/participants/rm-attendee",
-		middleware.JwtAuthentication(RmAttendeeEvent(partSvc, eventSvc))).Methods("POST")
+	r.HandlerFunc("POST", "/api/v1/participants/create-attendee",
+		middleware.JwtAuthentication(createAttendee(partSvc, eventSvc)))
+	r.HandlerFunc("POST", "/api/v1/participants/delete-attendee",
+		middleware.JwtAuthentication(deleteAttendee(partSvc, eventSvc)))
+	r.HandlerFunc("GET", "/api/v1/participants/read-attendee",
+		middleware.JwtAuthentication(readAttendee(partSvc)))
+	r.HandlerFunc("POST", "/api/v1/participants/rm-attendee",
+		middleware.JwtAuthentication(rmAttendeeEvent(partSvc, eventSvc)))
 }

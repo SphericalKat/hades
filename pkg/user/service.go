@@ -3,15 +3,15 @@ package user
 import (
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/pkg"
-	"github.com/ATechnoHazard/hades-2/pkg/organization"
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service interface {
-	CreateUser(user *User) (*jwt.Token, error)
+	CreateUser(user *entities.User) (*jwt.Token, error)
 	Login(email string, password string) (*jwt.Token, error)
-	GetUserOrgs(email string) ([]organization.Organization, error)
+	GetUserOrgs(email string) ([]entities.Organization, error)
 }
 
 func NewUserService(r Repository) Service {
@@ -22,7 +22,7 @@ type userSvc struct {
 	repo Repository
 }
 
-func (u *userSvc) CreateUser(user *User) (*jwt.Token, error) {
+func (u *userSvc) CreateUser(user *entities.User) (*jwt.Token, error) {
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, pkg.ErrDatabase
@@ -56,7 +56,7 @@ func (u *userSvc) Login(email string, password string) (*jwt.Token, error) {
 	}
 }
 
-func (u *userSvc) GetUserOrgs(email string) ([]organization.Organization, error) {
+func (u *userSvc) GetUserOrgs(email string) ([]entities.Organization, error) {
 	user, err := u.repo.Find(email)
 	if err != nil {
 		return nil, err
