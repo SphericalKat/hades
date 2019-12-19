@@ -23,7 +23,6 @@ func CreateGuest(guestService guest.Service, eventService event.Service) http.Ha
 		}
 
 		eve, err := eventService.ReadEvent(gus.EventId)
-
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -40,6 +39,7 @@ func CreateGuest(guestService guest.Service, eventService event.Service) http.Ha
 		}
 
 		utils.Respond(w, utils.Message(http.StatusOK, "Guest successfully created."))
+		return
 	}
 }
 
@@ -72,6 +72,7 @@ func RemoveGuestEvent(guestService guest.Service, eventService event.Service) ht
 		}
 
 		utils.Respond(w, utils.Message(http.StatusOK, "Removed guest from event successfully."))
+		return
 	}
 }
 
@@ -104,7 +105,10 @@ func GetAllGuests(guestService guest.Service, eventService event.Service) http.H
 			views.Wrap(err, w)
 			return
 		}
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{"data": guests})
+		msg := utils.Message(http.StatusOK, "Guests successfully retrieved")
+		msg["guests"] = guests
+		utils.Respond(w, msg)
+		return
 	}
 }
 
@@ -131,13 +135,17 @@ func GetGuest(guestService guest.Service, eventService event.Service) http.Handl
 			return
 		}
 
-		guss, err := guestService.GetGuestEvent(gus.Email, gus.EventId)
+		g, err := guestService.GetGuestEvent(gus.Email, gus.EventId)
 
 		if err != nil {
 			views.Wrap(err, w)
 			return
 		}
-		_ = json.NewEncoder(w).Encode(guss)
+
+		msg := utils.Message(http.StatusOK, "Guest successfully retrieved")
+		msg["guest"] = g
+		utils.Respond(w, msg)
+		return
 	}
 }
 

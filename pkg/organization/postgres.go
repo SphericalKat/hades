@@ -56,7 +56,8 @@ func (r *repo) Delete(orgID uint) error {
 func (r *repo) SaveJoinReq(request *entities.JoinRequest) error {
 	tx := r.DB.Begin()
 	u := &entities.User{Email: request.Email}
-	if tx.Find(u).Error == gorm.ErrRecordNotFound {
+	org := &entities.Organization{ID: request.OrganizationID}
+	if tx.Find(u).Association("Organizations").Find(&u.Organizations).Error == gorm.ErrRecordNotFound {
 		tx.Rollback()
 		return pkg.ErrNotFound
 	}
@@ -68,10 +69,15 @@ func (r *repo) SaveJoinReq(request *entities.JoinRequest) error {
 		}
 	}
 
+	if tx.Find(org).Error == gorm.ErrRecordNotFound {
+		tx.Rollback()
+		return pkg.ErrNotFound
+	}
+
 	err := tx.Find(request).Error
 	switch err {
 	case gorm.ErrRecordNotFound:
-		tx.Save(request)
+		tx.Create(request)
 		tx.Commit()
 		return nil
 	case nil:

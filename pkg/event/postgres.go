@@ -14,7 +14,6 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 	return &repo{DB: db}
 }
 
-
 func (r *repo) Find(eventID uint) (*entities.Event, error) {
 	event := &entities.Event{ID: eventID}
 	err := r.DB.Find(event).Error

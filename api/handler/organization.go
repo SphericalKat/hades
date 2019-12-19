@@ -21,7 +21,6 @@ func acceptJoinRequest(oSvc organization.Service) http.HandlerFunc {
 			return
 		}
 
-
 		if err := oSvc.AcceptJoinReq(j.OrganizationID, tk.Email); err != nil {
 			views.Wrap(err, w)
 			return
@@ -50,6 +49,6 @@ func sendJoinRequest(oSvc organization.Service) http.HandlerFunc {
 }
 
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
-	r.HandlerFunc("POST","/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
-	r.HandlerFunc("POST","/api/v1/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
+	r.HandlerFunc("POST", "/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
+	r.HandlerFunc("POST", "/api/v1/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
 }

@@ -9,13 +9,14 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"strconv"
 )
 
 func createAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &views.Participant{}
 		ctx := r.Context()
-		tk := ctx.Value(middleware.JwtContextKey("token")).(middleware.Token)
+		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
 
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
@@ -29,6 +30,7 @@ func createAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 		}
 		if e.OrganizationID != tk.OrgID {
 			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
 		}
 
 		if err := pSvc.CreateAttendee(p.Transform(), p.EventId); err != nil {
@@ -45,7 +47,7 @@ func deleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &views.Participant{}
 		ctx := r.Context()
-		tk := ctx.Value(middleware.JwtContextKey("token")).(middleware.Token)
+		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
 			return
@@ -77,7 +79,18 @@ func readAttendee(pSvc participant.Service) http.HandlerFunc {
 			u.Respond(w, u.Message(http.StatusBadRequest, "Invalid Registration number"))
 		}
 
-		a, err := pSvc.ReadAttendee(regNo[0])
+		eventID, ok := r.URL.Query()["event_id"]
+		if !ok || len(eventID) < 1 {
+			u.Respond(w, u.Message(http.StatusBadRequest, "Invalid event ID"))
+		}
+
+		eID, err := strconv.Atoi(eventID[0])
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		a, err := pSvc.ReadAttendee(regNo[0], uint(eID))
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -95,7 +108,7 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &views.Participant{}
 		ctx := r.Context()
-		tk := ctx.Value(middleware.JwtContextKey("token")).(middleware.Token)
+		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
 			return

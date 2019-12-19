@@ -11,14 +11,14 @@ type repo struct {
 }
 
 func NewPostgresRepo(db *gorm.DB) Repository {
-	return &repo{DB:db}
+	return &repo{DB: db}
 }
 
 func (r *repo) FindGuestEvent(email string, eventId uint) (*entities.Guest, error) {
-	eve := &entities.Event{}
+	eve := &entities.Event{ID: eventId}
 
-	err := r.DB.Where("event_id = ?", eventId).Find(eve).Error
-	switch err{
+	err := r.DB.Find(eve).Association("Guests").Find(&eve.Guests).Error
+	switch err {
 	case gorm.ErrRecordNotFound:
 		return nil, pkg.ErrNotFound
 	case nil:
@@ -34,8 +34,8 @@ func (r *repo) FindGuestEvent(email string, eventId uint) (*entities.Guest, erro
 }
 
 func (r *repo) FindAllGuestEvent(eventId uint) ([]entities.Guest, error) {
-	eve := &entities.Event{}
-	err := r.DB.Where("event_id = ?", eventId).Find(eve).Error
+	eve := &entities.Event{ID: eventId}
+	err := r.DB.Find(eve).Error
 	switch err {
 	case gorm.ErrRecordNotFound:
 		return nil, pkg.ErrNotFound
@@ -48,7 +48,7 @@ func (r *repo) FindAllGuestEvent(eventId uint) ([]entities.Guest, error) {
 
 func (r *repo) SaveGuestEvent(guest *entities.Guest, eventId uint) error {
 	tx := r.DB.Begin()
-	e := &entities.Event{ID:eventId}
+	e := &entities.Event{ID: eventId}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {
 		tx.Rollback()
@@ -82,7 +82,7 @@ func (r *repo) Delete(email string) error {
 func (r *repo) RemoveGuestEvent(emailId string, eventID uint) error {
 	tx := r.DB.Begin()
 	e := &entities.Event{ID: eventID}
-	p := &entities.Guest{Email:emailId}
+	p := &entities.Guest{Email: emailId}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {
 		tx.Rollback()

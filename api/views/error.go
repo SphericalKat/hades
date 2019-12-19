@@ -56,6 +56,5 @@ func Wrap(err error, w http.ResponseWriter) {
 		"code":    code,
 	}).Error("Error occurred")
 
-
 	_ = json.NewEncoder(w).Encode(errView)
 }

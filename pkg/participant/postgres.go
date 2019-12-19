@@ -27,12 +27,18 @@ func (r *repo) FindAll() ([]entities.Participant, error) {
 	}
 }
 
-func (r *repo) FindByRegNo(regNo string) (*entities.Participant, error) {
-	p := &entities.Participant{}
-	err := r.DB.Where("reg_no = ?", regNo).Find(p).Error
+func (r *repo) FindByRegNo(regNo string, eventID uint) (*entities.Participant, error) {
+	e := &entities.Event{ID: eventID}
+
+	err := r.DB.Find(e).Association("Attendees").Find(&e.Attendees).Error
 	switch err {
 	case nil:
-		return p, nil
+		for _, p := range e.Attendees {
+			if p.RegNo == regNo {
+				return &p, nil
+			}
+		}
+		return nil, pkg.ErrNotFound
 	case gorm.ErrRecordNotFound:
 		return nil, pkg.ErrNotFound
 	default:

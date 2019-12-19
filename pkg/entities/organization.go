@@ -5,7 +5,7 @@ import (
 )
 
 type Organization struct {
-	ID           uint          `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	ID           uint          `json:"org_id" gorm:"primary_key;AUTO_INCREMENT"`
 	Name         string        `json:"name"`
 	Location     string        `json:"location"`
 	Description  string        `json:"description"`
@@ -19,6 +19,6 @@ type Organization struct {
 }
 
 type JoinRequest struct {
-	OrganizationID uint   `gorm:"primary_key"`
-	Email          string `gorm:"primary_key"`
+	OrganizationID uint   `gorm:"primary_key" json:"org_id"`
+	Email          string `gorm:"primary_key" json:"email"`
 }
