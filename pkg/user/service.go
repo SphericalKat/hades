@@ -61,5 +61,7 @@ func (u *userSvc) GetUserOrgs(email string) ([]entities.Organization, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return user.Organizations, err
 }
+

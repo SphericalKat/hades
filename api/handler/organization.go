@@ -9,6 +9,7 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"os"
 )
 
 func acceptJoinRequest(oSvc organization.Service) http.HandlerFunc {
@@ -48,7 +49,42 @@ func sendJoinRequest(oSvc organization.Service) http.HandlerFunc {
 	}
 }
 
+func loginOrg(oSvc organization.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		j := &entities.JoinRequest{}
+		ctx := r.Context()
+		tkn := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		if err := json.NewDecoder(r.Body).Decode(j); err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		if tkn.Email != j.Email {
+			u.Respond(w, u.Message(http.StatusUnauthorized, "You are not authorized to use this resource"))
+			return
+		}
+
+		tk, err := oSvc.LoginOrg(j.OrganizationID, j.Email)
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		tkString, err := tk.SignedString([]byte(os.Getenv("TOKEN_PASSWORD")))
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		msg := u.Message(http.StatusOK, "Logged in to organization")
+		msg["token"] = tkString
+		u.Respond(w, msg)
+		return
+	}
+}
+
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
 	r.HandlerFunc("POST", "/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v1/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
+	r.HandlerFunc("POST", "/api/v1/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
 }

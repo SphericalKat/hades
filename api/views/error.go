@@ -5,8 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
-
 	pkg "github.com/ATechnoHazard/hades-2/pkg"
 )
 
@@ -51,10 +49,10 @@ func Wrap(err error, w http.ResponseWriter) {
 		Message: msg,
 		Status:  code,
 	}
-	log.WithFields(log.Fields{
-		"message": msg,
-		"code":    code,
-	}).Error("Error occurred")
+	//log.WithFields(log.Fields{
+	//	"message": msg,
+	//	"code":    code,
+	//}).Error("Error occurred")
 
 	_ = json.NewEncoder(w).Encode(errView)
 }

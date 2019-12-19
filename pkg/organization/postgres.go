@@ -24,12 +24,23 @@ func (r *repo) Save(organization *entities.Organization) error {
 
 func (r *repo) Find(orgID uint) (*entities.Organization, error) {
 	org := &entities.Organization{ID: orgID}
-	err := r.DB.Find(org).Association("Events").Find(&org.Events).Error
+	tx := r.DB.Begin()
+	err := tx.Find(org).Association("Events").Find(&org.Events).Error
+	if err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return nil, pkg.ErrNotFound
+		default:
+			return nil, pkg.ErrDatabase
+		}
+	}
+
+	err = tx.Find(org).Association("Users").Find(&org.Users).Error
 	switch err {
+	case nil:
+		return org, nil
 	case gorm.ErrRecordNotFound:
 		return nil, pkg.ErrNotFound
-	case nil:
-		return org, err
 	default:
 		return nil, pkg.ErrDatabase
 	}

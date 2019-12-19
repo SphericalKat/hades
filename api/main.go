@@ -5,6 +5,7 @@ import (
 	"github.com/ATechnoHazard/hades-2/api/handler"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
+	"github.com/ATechnoHazard/hades-2/pkg/guest"
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
 	"github.com/ATechnoHazard/hades-2/pkg/user"
@@ -68,15 +69,18 @@ func main() {
 	eventRepo := event.NewPostgresRepo(db)
 	orgRepo := organization.NewPostgresRepo(db)
 	userRepo := user.NewPostgresRepo(db)
+	guestRepo := guest.NewPostgresRepo(db)
 
 	partSvc := participant.NewParticipantService(partRepo)
 	eventSvc := event.NewEventService(eventRepo)
 	orgSvc := organization.NewOrganizationService(orgRepo)
 	userSvc := user.NewUserService(userRepo)
+	guestSvc := guest.NewGuestService(guestRepo)
 
 	handler.MakeParticipantHandler(r, partSvc, eventSvc)
 	handler.MakeUserHandler(r, userSvc)
 	handler.MakeOrgHandler(r, orgSvc)
+	handler.MakeGuestHandlers(r, guestSvc, eventSvc)
 
 	//_ = orgSvc.SaveOrg(&organization.Organization{
 	//	Name:        "DSC VIT",

@@ -2,6 +2,7 @@ package organization
 
 import (
 	"github.com/ATechnoHazard/hades-2/api/middleware"
+	"github.com/ATechnoHazard/hades-2/pkg"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/dgrijalva/jwt-go"
 )
@@ -14,6 +15,7 @@ type Service interface {
 	SendJoinRequest(orgID uint, email string) error
 	GetAllJoinReqs(orgID uint) ([]entities.JoinRequest, error)
 	AcceptJoinReq(orgID uint, email string) error
+	LoginOrg(orgID uint, email string) (*jwt.Token, error)
 }
 
 type orgSvc struct {
@@ -58,7 +60,18 @@ func (o *orgSvc) GetOrgEvents(orgID uint) ([]entities.Event, error) {
 }
 
 func (o *orgSvc) LoginOrg(orgID uint, email string) (*jwt.Token, error) {
-	tk := middleware.Token{Email: email, OrgID: orgID, Role: "admin"}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tk)
-	return token, nil
+	org, err := o.repo.Find(orgID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range org.Users {
+		if user.Email == email {
+			tk := middleware.Token{Email: email, OrgID: orgID, Role: "admin"}
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, tk)
+			return token, nil
+		}
+	}
+
+	return nil, pkg.ErrNotFound
 }
