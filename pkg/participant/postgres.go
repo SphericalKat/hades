@@ -14,17 +14,26 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 	return &repo{DB: db}
 }
 
-func (r *repo) FindAll() ([]entities.Participant, error) {
+func (r *repo) FindAll(eventId uint) ([]entities.Participant, error) {
 	var participants []entities.Participant
-	err := r.DB.Model(entities.Participant{}).Find(&participants).Error
-	switch err {
-	case nil:
-		return participants, nil
-	case gorm.ErrRecordNotFound:
+	eve := &entities.Event{ID:eventId}
+	err := r.DB.Find(eve).Error
+
+	if err == gorm.ErrRecordNotFound {
 		return nil, pkg.ErrNotFound
-	default:
+	} else if err != nil {
 		return nil, pkg.ErrDatabase
 	}
+
+	err = r.DB.Model(eve).Association("Attendees").Find(&participants).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return nil, pkg.ErrNotFound
+	} else if err != nil {
+		return nil, pkg.ErrDatabase
+	}
+
+	return participants, nil
 }
 
 func (r *repo) FindByRegNo(regNo string, eventID uint) (*entities.Participant, error) {

@@ -152,9 +152,9 @@ func GetGuest(guestService guest.Service, eventService event.Service) http.Handl
 func MakeGuestHandlers(r *httprouter.Router, guestService guest.Service, eventService event.Service) {
 	r.HandlerFunc("POST", "/api/v1/guests/create-guest",
 		middleware.JwtAuthentication(CreateGuest(guestService, eventService)))
-	r.HandlerFunc("GET", "/api/v1/guests/get-guest",
+	r.HandlerFunc("POST", "/api/v1/guests/get-guest",
 		middleware.JwtAuthentication(GetGuest(guestService, eventService)))
-	r.HandlerFunc("GET", "/api/v1/guests/all-guests",
+	r.HandlerFunc("POST", "/api/v1/guests/all-guests",
 		middleware.JwtAuthentication(GetAllGuests(guestService, eventService)))
 	r.HandlerFunc("POST", "/api/v1/guests/remove-guest",
 		middleware.JwtAuthentication(RemoveGuestEvent(guestService, eventService)))
