@@ -12,6 +12,7 @@ type Service interface {
 	CreateUser(user *entities.User) (*jwt.Token, error)
 	Login(email string, password string) (*jwt.Token, error)
 	GetUserOrgs(email string) ([]entities.Organization, error)
+	GetOrgUsers(orgID uint) ([]entities.User, error)
 }
 
 func NewUserService(r Repository) Service {
@@ -65,3 +66,6 @@ func (u *userSvc) GetUserOrgs(email string) ([]entities.Organization, error) {
 	return user.Organizations, err
 }
 
+func (u *userSvc) GetOrgUsers(orgId uint) ([]entities.User, error) {
+	return u.repo.GetAllUsers(orgId)
+}
