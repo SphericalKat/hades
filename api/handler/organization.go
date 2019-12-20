@@ -157,11 +157,11 @@ func createOrg(oSvc organization.Service) http.HandlerFunc {
 }
 
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
-	r.HandlerFunc("POST", "/api/v1/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
-	r.HandlerFunc("POST", "/api/v1/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
-	r.HandlerFunc("POST", "/api/v1/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
-	r.HandlerFunc("POST", "/api/v1/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
-	r.HandlerFunc("GET", "/api/v1/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
-	r.HandlerFunc("GET", "/api/v1/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
-	r.HandlerFunc("GET", "/api/v1/org/create", middleware.JwtAuthentication(createOrg(oSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
+	r.HandlerFunc("GET", "/api/v2/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
+	r.HandlerFunc("GET", "/api/v2/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
+	r.HandlerFunc("GET", "/api/v2/org/create", middleware.JwtAuthentication(createOrg(oSvc)))
 }

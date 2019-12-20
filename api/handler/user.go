@@ -84,7 +84,7 @@ func getUserOrgs(uSvc user.Service) http.HandlerFunc {
 }
 
 func MakeUserHandler(r *httprouter.Router, uSvc user.Service) {
-	r.HandlerFunc("POST", "/api/v1/org/signup", signUp(uSvc))
-	r.HandlerFunc("POST", "/api/v1/org/login", login(uSvc))
-	r.HandlerFunc("GET", "/api/v1/org/", middleware.JwtAuthentication(getUserOrgs(uSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/signup", signUp(uSvc))
+	r.HandlerFunc("POST", "/api/v2/org/login", login(uSvc))
+	r.HandlerFunc("GET", "/api/v2/org/", middleware.JwtAuthentication(getUserOrgs(uSvc)))
 }
