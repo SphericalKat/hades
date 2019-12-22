@@ -204,7 +204,9 @@ func GetCoupons(couponService coupon.Service, eventService event.Service) http.H
 			return
 		}
 
-		utils.Respond(w, map[string]interface{}{"code": http.StatusOK, "data": coups})
+		msg := utils.Message(http.StatusOK, "Retrieved all coupons successfully")
+		msg["coupons"] = coups
+		utils.Respond(w, msg)
 	}
 }
 

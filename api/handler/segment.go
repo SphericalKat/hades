@@ -113,7 +113,9 @@ func GetSegments(segmentService segment.Service, eventService event.Service) htt
 			return
 		}
 
-		utils.Respond(w, map[string]interface{}{"code": http.StatusOK, "data": segments})
+		msg := utils.Message(http.StatusOK, "Retrieved all event segments successfully")
+		msg["segments"] = segments
+		utils.Respond(w, msg)
 	}
 }
 
@@ -153,7 +155,9 @@ func GetParticipantsInSegment(segmentService segment.Service, eventService event
 			return
 		}
 
-		utils.Respond(w, map[string]interface{}{"code": http.StatusOK, "data": peeps})
+		msg := utils.Message(http.StatusOK, "Retrieved all participants in event segment successfully")
+		msg["participants"] = peeps
+		utils.Respond(w, msg)
 	}
 }
 
