@@ -83,8 +83,27 @@ func getUserOrgs(uSvc user.Service) http.HandlerFunc {
 	}
 }
 
+func getAllUsers(uSvc user.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+
+		users, err := uSvc.GetOrgUsers(tk.OrgID)
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		msg := u.Message(http.StatusOK, "Successfully retrieved organization users")
+		msg["users"] = users
+		u.Respond(w, msg)
+		return
+	}
+}
+
 func MakeUserHandler(r *httprouter.Router, uSvc user.Service) {
-	r.HandlerFunc("POST", "/api/v1/org/signup", signUp(uSvc))
-	r.HandlerFunc("POST", "/api/v1/org/login", login(uSvc))
-	r.HandlerFunc("GET", "/api/v1/org/", middleware.JwtAuthentication(getUserOrgs(uSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/signup", signUp(uSvc))
+	r.HandlerFunc("POST", "/api/v2/org/login", login(uSvc))
+	r.HandlerFunc("GET", "/api/v2/org/", middleware.JwtAuthentication(getUserOrgs(uSvc)))
+	r.HandlerFunc("GET", "/api/v2/org/users", middleware.JwtAuthentication(getAllUsers(uSvc)))
 }

@@ -6,4 +6,5 @@ type Repository interface {
 	Create(user *entities.User) error
 	Find(email string) (*entities.User, error)
 	Delete(email string) error
+	GetAllUsers(orgID uint) ([]entities.User, error)
 }

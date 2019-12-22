@@ -52,3 +52,16 @@ func (r *repo) Delete(email string) error {
 		return pkg.ErrDatabase
 	}
 }
+
+func (r *repo) GetAllUsers(orgID uint) ([]entities.User, error) {
+	o := &entities.Organization{ID: orgID}
+	err := r.DB.Find(o).Association("Users").Find(&o.Users).Error
+	switch err {
+	case nil:
+		return o.Users, nil
+	case gorm.ErrRecordNotFound:
+		return nil, pkg.ErrNotFound
+	default:
+		return nil, pkg.ErrDatabase
+	}
+}
