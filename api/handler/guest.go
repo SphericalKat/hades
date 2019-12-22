@@ -66,6 +66,12 @@ func RemoveGuestEvent(guestService guest.Service, eventService event.Service) ht
 			return
 		}
 
+		if _, err := guestService.GetGuestEvent(gus.Email, gus.EventId); err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+
 		if err := guestService.RemoveGuestEvent(gus.Email, gus.EventId); err != nil {
 			views.Wrap(err, w)
 			return

@@ -56,6 +56,8 @@ func DeleteCoupon(couponService coupon.Service, eventService event.Service) http
 			return
 		}
 
+
+
 		eve := &entities.Event{}
 		eve, err := eventService.ReadEvent(coup.EventId)
 
@@ -68,6 +70,18 @@ func DeleteCoupon(couponService coupon.Service, eventService event.Service) http
 			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
+
+		v, err := couponService.VerifyCoupon(coup.CouponId, coup.EventId)
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		if !v {
+			utils.Respond(w, utils.Message(http.StatusConflict, "The coupon and event are not related."))
+			return
+		}
+
 
 		if err := couponService.DeleteCoupon(coup.CouponId); err != nil {
 			views.Wrap(err, w)
@@ -110,7 +124,7 @@ func RedeemCoupon(couponService coupon.Service, eventService event.Service) http
 		}
 
 		if !v {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modying this resouce."))
+			utils.Respond(w, utils.Message(http.StatusConflict, "The coupon and event are not related."))
 			return
 		}
 
