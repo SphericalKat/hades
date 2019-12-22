@@ -8,4 +8,5 @@ type Repository interface {
 	DeleteCoupon(uint) error
 	GetCoupons(uint) ([]entities.Coupon, error)
 	AddCouponsToAll(uint) error
+	VerifyCoupon(uint, uint) (bool, error)
 }

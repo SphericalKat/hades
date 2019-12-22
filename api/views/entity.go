@@ -47,3 +47,9 @@ func (g *Guest) Transform() *entities.Guest {
 		DeletedAt:      nil,
 	}
 }
+
+type CouponParticipantComposite struct {
+	CouponID uint `json:"coupon_id"`
+	RegNo string `json:"reg_no"`
+	EventID uint `json:"event_id"`
+}

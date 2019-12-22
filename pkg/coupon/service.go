@@ -8,6 +8,7 @@ type Service interface {
 	DeleteCoupon(uint) error
 	GetCoupons(uint) ([]entities.Coupon, error)
 	AddCouponsToAll(uint) error
+	VerifyCoupon(uint, uint) (bool, error)
 }
 
 type couponSvc struct {
@@ -36,4 +37,8 @@ func (s *couponSvc) GetCoupons(eventId uint) ([]entities.Coupon, error) {
 
 func (s *couponSvc) AddCouponsToAll(eventId uint) error {
 	return s.repo.AddCouponsToAll(eventId)
+}
+
+func (s *couponSvc) VerifyCoupon(eventId uint, couponId uint) (bool, error) {
+	return s.repo.VerifyCoupon(eventId, couponId)
 }

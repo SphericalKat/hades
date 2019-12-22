@@ -137,3 +137,19 @@ func (r *repo) AddCouponsToAll(eventId uint) error {
 
 	return nil
 }
+
+func (r *repo) VerifyCoupon(eventId uint, couponId uint) (bool, error) {
+	coup := &entities.Coupon{CouponId:couponId}
+	err := r.DB.Find(coup).Error
+
+	if err == nil {
+		if coup.EventId != eventId {
+			return false, nil
+		}
+		return true, nil
+	} else if err == gorm.ErrRecordNotFound {
+		return false, pkg.ErrNotFound
+	} else {
+		return false, pkg.ErrDatabase
+	}
+}
