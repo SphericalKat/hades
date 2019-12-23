@@ -71,7 +71,25 @@ func (r *repo) AddPartipantToSegment(regNo string, day uint) error {
 		}
 	}
 
-	err = tx.Where("day = ?", day).Find(eveSeg).Association("PresentParticipants").Append(part).Error
+	err = tx.Find(eveSeg).Association("PresentParticipants").Find(&eveSeg.PresentParticipants).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	for _, p := range eveSeg.PresentParticipants {
+		if p.RegNo == part.RegNo {
+			tx.Rollback()
+			return pkg.ErrAlreadyExists
+		}
+	}
+
+	err = tx.Find(eveSeg).Association("PresentParticipants").Append(part).Error
 	if err != nil {
 		tx.Rollback()
 		switch err {
