@@ -24,7 +24,7 @@ import (
 )
 
 func init() {
-	log.SetFormatter(&log.JSONFormatter{})
+	log.SetFormatter(&log.JSONFormatter{PrettyPrint: true})
 	log.SetOutput(os.Stdout)
 	err := godotenv.Load()
 	if err != nil {
@@ -34,9 +34,8 @@ func init() {
 
 func initNegroni() *negroni.Negroni {
 	n := negroni.New()
-	n.Use(negronilogrus.NewMiddleware())
+	n.Use(negronilogrus.NewCustomMiddleware(log.DebugLevel, &log.JSONFormatter{PrettyPrint: true}, "API requests"))
 	n.Use(negroni.NewRecovery())
-	n.Use(negroni.NewStatic(http.Dir("public")))
 	return n
 }
 
@@ -61,12 +60,12 @@ func connectDb() *gorm.DB {
 }
 
 func main() {
-	r := httprouter.New()
+	r := httprouter.New() // create a router
+	n := initNegroni()    // init negroni middleware
+	n.UseHandler(r)       // wrap router with negroni middleware
+	db := connectDb()     // migrate and connect to db
 
-	n := initNegroni()
-	n.UseHandler(r)
-	db := connectDb()
-
+	// Create postgres repos for all entities
 	partRepo := participant.NewPostgresRepo(db)
 	eventRepo := event.NewPostgresRepo(db)
 	orgRepo := organization.NewPostgresRepo(db)
@@ -75,6 +74,7 @@ func main() {
 	couponRepo := coupon.NewPostgresRepo(db)
 	segmentRepo := segment.NewPostgresRepo(db)
 
+	// Create services using previously generated repos
 	partSvc := participant.NewParticipantService(partRepo)
 	eventSvc := event.NewEventService(eventRepo)
 	orgSvc := organization.NewOrganizationService(orgRepo)
@@ -83,6 +83,7 @@ func main() {
 	couponSvc := coupon.NewCouponService(couponRepo)
 	segmentSvc := segment.NewEventSegmentServie(segmentRepo)
 
+	// Create and register handlers using generated services
 	handler.MakeParticipantHandler(r, partSvc, eventSvc)
 	handler.MakeUserHandler(r, userSvc)
 	handler.MakeOrgHandler(r, orgSvc)
@@ -90,13 +91,13 @@ func main() {
 	handler.MakeCouponHandler(r, couponSvc, eventSvc)
 	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc)
 
-
+	// listen and serve on given port
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "4000"
 	}
 
-	log.Println("Listening on port " + port)
+	log.WithField("event", "START").Info("Listening on port " + port)
 
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), n)
 	if err != nil {
