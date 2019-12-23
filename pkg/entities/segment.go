@@ -9,8 +9,3 @@ type EventSegment struct {
 	PresentParticipants []Participant `json:"-" gorm:"many2many:participant_event_segment"`
 	DeletedAt           *time.Time    `json:"-" sql:"index"`
 }
-
-type ESParticipant struct {
-	Participant Participant `json:"participant"`
-	IsPresent   bool        `json:"is_present"`
-}

@@ -155,7 +155,7 @@ func GetGuest(guestService guest.Service, eventService event.Service) http.Handl
 	}
 }
 
-func MakeGuestHandlers(r *httprouter.Router, guestService guest.Service, eventService event.Service) {
+func MakeGuestHandler(r *httprouter.Router, guestService guest.Service, eventService event.Service) {
 	r.HandlerFunc("POST", "/api/v2/guests/create-guest",
 		middleware.JwtAuthentication(CreateGuest(guestService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/guests/get-guest",

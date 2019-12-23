@@ -210,7 +210,7 @@ func GetCoupons(couponService coupon.Service, eventService event.Service) http.H
 	}
 }
 
-func MakeCouponHandlers(r *httprouter.Router, couponService coupon.Service, eventService event.Service) {
+func MakeCouponHandler(r *httprouter.Router, couponService coupon.Service, eventService event.Service) {
 	r.HandlerFunc("POST", "/api/v2/coupon/save-coupon",
 		middleware.JwtAuthentication(SaveCoupon(couponService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/coupon/delete-coupon",

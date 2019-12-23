@@ -200,16 +200,16 @@ func AttendEventSegment(segmentService segment.Service, eventService event.Servi
 	}
 }
 
-func MakeEventSegmentHandlers(r *httprouter.Router, segmentService segment.Service, eventService event.Service) {
-	r.HandlerFunc("POST", "/api/v2/event-segment/add-segment",
+func MakeEventSegmentHandler(r *httprouter.Router, segmentService segment.Service, eventService event.Service) {
+	r.HandlerFunc("POST", "/api/v2/participant/add-segment",
 		middleware.JwtAuthentication(AddSegment(segmentService, eventService)))
-	r.HandlerFunc("POST", "/api/v2/event-segment/rm-segment",
+	r.HandlerFunc("POST", "/api/v2/participant/rm-segment",
 		middleware.JwtAuthentication(DeleteSegment(segmentService, eventService)))
-	r.HandlerFunc("POST", "/api/v2/event-segment/get-segments",
+	r.HandlerFunc("POST", "/api/v2/participant/get-segments",
 		middleware.JwtAuthentication(GetSegments(segmentService, eventService)))
-	r.HandlerFunc("POST", "/api/v2/event-segment/get-present-participants",
+	r.HandlerFunc("POST", "/api/v2/participant/get-present",
 		middleware.JwtAuthentication(GetParticipantsInSegment(segmentService, eventService)))
-	r.HandlerFunc("POST", "/api/v2/event-segment/mark-participant-present",
+	r.HandlerFunc("POST", "/api/v2/participant/mark-present",
 		middleware.JwtAuthentication(AttendEventSegment(segmentService, eventService)))
 }
 

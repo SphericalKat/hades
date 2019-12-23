@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"github.com/ATechnoHazard/hades-2/api/handler"
+	"github.com/ATechnoHazard/hades-2/pkg/coupon"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/guest"
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
+	"github.com/ATechnoHazard/hades-2/pkg/segment"
 	"github.com/ATechnoHazard/hades-2/pkg/user"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -70,45 +72,24 @@ func main() {
 	orgRepo := organization.NewPostgresRepo(db)
 	userRepo := user.NewPostgresRepo(db)
 	guestRepo := guest.NewPostgresRepo(db)
+	couponRepo := coupon.NewPostgresRepo(db)
+	segmentRepo := segment.NewPostgresRepo(db)
 
 	partSvc := participant.NewParticipantService(partRepo)
 	eventSvc := event.NewEventService(eventRepo)
 	orgSvc := organization.NewOrganizationService(orgRepo)
 	userSvc := user.NewUserService(userRepo)
 	guestSvc := guest.NewGuestService(guestRepo)
+	couponSvc := coupon.NewCouponService(couponRepo)
+	segmentSvc := segment.NewEventSegmentServie(segmentRepo)
 
 	handler.MakeParticipantHandler(r, partSvc, eventSvc)
 	handler.MakeUserHandler(r, userSvc)
 	handler.MakeOrgHandler(r, orgSvc)
-	handler.MakeGuestHandlers(r, guestSvc, eventSvc)
+	handler.MakeGuestHandler(r, guestSvc, eventSvc)
+	handler.MakeCouponHandler(r, couponSvc, eventSvc)
+	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc)
 
-	//_ = orgSvc.SaveOrg(&organization.Organization{
-	//	Name:        "DSC VIT",
-	//	Location:    "Vellore",
-	//	Description: "The best",
-	//	Tag:         "#dscvit",
-	//	Website:     "dscvit.com",
-	//	CreatedAt:   time.Now(),
-	//})
-
-	//_ = eventSvc.SaveEvent(&event.Event{
-	//	ID:                    2,
-	//	OrganizationID:        1,
-	//	Name:                  "Leet haxx",
-	//	Budget:                "690000",
-	//	Description:           "Greatest hackathon ever",
-	//	Category:              "Hackathon",
-	//	Venue:                 "Some gallery",
-	//	Attendance:            "full",
-	//	ExpectedParticipants:  "5000",
-	//	ToDate:                time.Now(),
-	//	FromDate:              time.Now(),
-	//	ToTime:                time.Now().Add(time.Hour),
-	//	FromTime:              time.Now(),
-	//})
-
-	//events, _ := orgSvc.GetOrgEvents(1)
-	//log.Println(events)
 
 	port := os.Getenv("PORT")
 	if port == "" {
