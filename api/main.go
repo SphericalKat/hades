@@ -90,6 +90,7 @@ func main() {
 	handler.MakeGuestHandler(r, guestSvc, eventSvc)
 	handler.MakeCouponHandler(r, couponSvc, eventSvc)
 	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc)
+	handler.MakeEventHandler(r, eventSvc)
 
 	// listen and serve on given port
 	port := os.Getenv("PORT")
