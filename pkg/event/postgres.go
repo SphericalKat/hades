@@ -15,8 +15,8 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 }
 
 func (r *repo) Find(eventID uint) (*entities.Event, error) {
-	event := &entities.Event{ID: eventID}
-	err := r.DB.Find(event).Error
+	event := &entities.Event{}
+	err := r.DB.Where("id = ?", eventID).Find(event).Error
 	switch err {
 	case nil:
 		return event, nil

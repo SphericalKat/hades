@@ -22,6 +22,10 @@ func saveEvent(eSvc event.Service) http.HandlerFunc {
 			return
 		}
 
+		if e.OrganizationID == 0 {
+			e.OrganizationID = tk.OrgID
+		}
+
 		if tk.OrgID != e.OrganizationID {
 			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
 			return
@@ -59,7 +63,10 @@ func getEvent(eSvc event.Service) http.HandlerFunc {
 			return
 		}
 
-		u.Respond(w, u.Message(http.StatusOK, "Event successfully retrieved"))
+		msg := u.Message(http.StatusOK, "Event successfully retrieved")
+		msg["event"] = evnt
+
+		u.Respond(w, msg)
 		return
 	}
 }
