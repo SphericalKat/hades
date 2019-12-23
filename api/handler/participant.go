@@ -142,7 +142,7 @@ func MakeParticipantHandler(r *httprouter.Router, partSvc participant.Service, e
 
 	r.HandlerFunc("POST", "/api/v2/participants/create-attendee",
 		middleware.JwtAuthentication(createAttendee(partSvc, eventSvc)))
-	r.HandlerFunc("POST", "/api/v2/participants/delete-attendee",
+	r.HandlerFunc("DELETE", "/api/v2/participants/delete-attendee",
 		middleware.JwtAuthentication(deleteAttendee(partSvc, eventSvc)))
 	r.HandlerFunc("GET", "/api/v2/participants/read-attendee",
 		middleware.JwtAuthentication(readAttendee(partSvc)))

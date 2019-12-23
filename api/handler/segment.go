@@ -203,7 +203,7 @@ func AttendEventSegment(segmentService segment.Service, eventService event.Servi
 func MakeEventSegmentHandler(r *httprouter.Router, segmentService segment.Service, eventService event.Service) {
 	r.HandlerFunc("POST", "/api/v2/participant/add-segment",
 		middleware.JwtAuthentication(AddSegment(segmentService, eventService)))
-	r.HandlerFunc("POST", "/api/v2/participant/rm-segment",
+	r.HandlerFunc("DELETE", "/api/v2/participant/rm-segment",
 		middleware.JwtAuthentication(DeleteSegment(segmentService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/participant/get-segments",
 		middleware.JwtAuthentication(GetSegments(segmentService, eventService)))
