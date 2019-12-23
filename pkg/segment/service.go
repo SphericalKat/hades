@@ -7,14 +7,14 @@ type Service interface {
 	GetParticipantsInSegment(uint) ([]entities.Participant, error)
 	DeleteSegment(uint) error
 	AddParticipantToSegment(string, uint) error
-	ReadEventSegment(uint) (*entities.EventSegment, error)
+	ReadEventSegment(uint, uint) (*entities.EventSegment, error)
 }
 
 type eventSegSvc struct {
 	repo Repository
 }
 
-func NewEventSegmentServie(repo Repository) Service {
+func NewEventSegmentService(repo Repository) Service {
 	return &eventSegSvc{repo:repo}
 }
 
@@ -35,6 +35,6 @@ func (s *eventSegSvc) AddParticipantToSegment(regNo string, segmentId uint) erro
 	return s.repo.AddPartipantToSegment(regNo, segmentId)
 }
 
-func (s *eventSegSvc) ReadEventSegment(segmentId uint) (*entities.EventSegment, error) {
-	return s.repo.Find(segmentId)
+func (s *eventSegSvc) ReadEventSegment(eventID uint, day uint) (*entities.EventSegment, error) {
+	return s.repo.Find(day, eventID)
 }

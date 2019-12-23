@@ -25,7 +25,7 @@ func deleteSegment(segmentService segment.Service, eventService event.Service) h
 			return
 		}
 
-		seg, err := segmentService.ReadEventSegment(seg.Day)
+		seg, err := segmentService.ReadEventSegment(seg.Day, seg.EventID)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -99,7 +99,7 @@ func getParticipantsInSegment(segmentService segment.Service, eventService event
 			return
 		}
 
-		seg, err := segmentService.ReadEventSegment(seg.Day)
+		seg, err := segmentService.ReadEventSegment(seg.Day, seg.EventID)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -116,14 +116,8 @@ func getParticipantsInSegment(segmentService segment.Service, eventService event
 			return
 		}
 
-		peeps, err := segmentService.GetParticipantsInSegment(seg.Day)
-		if err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
 		msg := utils.Message(http.StatusOK, "Retrieved all participants in event segment successfully")
-		msg["participants"] = peeps
+		msg["participants"] = seg.PresentParticipants
 		utils.Respond(w, msg)
 	}
 }
@@ -141,7 +135,7 @@ func markPresent(segmentService segment.Service, eventService event.Service) htt
 			return
 		}
 
-		seg, err := segmentService.ReadEventSegment(composite.Day)
+		seg, err := segmentService.ReadEventSegment(composite.Day, composite.EventID)
 		if err != nil {
 			views.Wrap(err, w)
 			return

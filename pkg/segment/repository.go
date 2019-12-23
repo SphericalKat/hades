@@ -7,5 +7,5 @@ type Repository interface {
 	GetParticipantsInSegment(uint) ([]entities.Participant, error)
 	DeleteSegment(uint) error
 	AddPartipantToSegment(string, uint) error
-	Find(uint) (*entities.EventSegment, error)
+	Find(day uint, eventID uint) (*entities.EventSegment, error)
 }

@@ -41,8 +41,8 @@ func (r *repo) DeleteSegment(segmentId uint) error {
 	return nil
 }
 
-func (r *repo) GetParticipantsInSegment(segmentId uint) ([]entities.Participant, error) {
-	eveSegment := &entities.EventSegment{Day: segmentId}
+func (r *repo) GetParticipantsInSegment(day uint) ([]entities.Participant, error) {
+	eveSegment := &entities.EventSegment{Day: day}
 	err := r.DB.Find(eveSegment).Association("PresentParticipants").Find(&eveSegment.PresentParticipants).Error
 
 	if err != nil {
@@ -82,16 +82,34 @@ func (r *repo) AddPartipantToSegment(regNo string, day uint) error {
 		}
 	}
 
+	tx.Commit()
 	return nil
 }
 
-func (r *repo) Find(day uint) (*entities.EventSegment, error) {
+func (r *repo) Find(day uint, eventID uint) (*entities.EventSegment, error) {
 	seg := &entities.EventSegment{}
-	if err := r.DB.Where("day = ?", day).Find(seg).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	tx := r.DB.Begin()
+	err := tx.Where("day = ?", day).Where("event_id = ?", eventID).Find(seg).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
 			return nil, pkg.ErrNotFound
+		default:
+			return nil, pkg.ErrDatabase
 		}
+	}
+
+	err = tx.Find(seg).Association("PresentParticipants").Find(&seg.PresentParticipants).Error
+	switch err {
+	case nil:
+		tx.Commit()
+		return seg, nil
+	case gorm.ErrRecordNotFound:
+		tx.Rollback()
+		return nil, pkg.ErrNotFound
+	default:
+		tx.Rollback()
 		return nil, pkg.ErrDatabase
 	}
-	return seg, nil
 }

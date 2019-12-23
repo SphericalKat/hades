@@ -81,7 +81,7 @@ func main() {
 	userSvc := user.NewUserService(userRepo)
 	guestSvc := guest.NewGuestService(guestRepo)
 	couponSvc := coupon.NewCouponService(couponRepo)
-	segmentSvc := segment.NewEventSegmentServie(segmentRepo)
+	segmentSvc := segment.NewEventSegmentService(segmentRepo)
 
 	// Create and register handlers using generated services
 	handler.MakeParticipantHandler(r, partSvc, eventSvc)
