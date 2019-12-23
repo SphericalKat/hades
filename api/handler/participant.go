@@ -77,11 +77,13 @@ func readAttendee(pSvc participant.Service) http.HandlerFunc {
 		regNo, ok := r.URL.Query()["reg_no"]
 		if !ok || len(regNo) < 1 {
 			u.Respond(w, u.Message(http.StatusBadRequest, "Invalid Registration number"))
+			return
 		}
 
 		eventID, ok := r.URL.Query()["event_id"]
 		if !ok || len(eventID) < 1 {
 			u.Respond(w, u.Message(http.StatusBadRequest, "Invalid event ID"))
+			return
 		}
 
 		eID, err := strconv.Atoi(eventID[0])
