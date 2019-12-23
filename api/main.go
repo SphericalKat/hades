@@ -55,7 +55,7 @@ func connectDb() *gorm.DB {
 	}
 
 	db.AutoMigrate(&entities.Participant{}, &entities.Event{}, &entities.Organization{}, &entities.User{},
-		entities.JoinRequest{})
+		entities.JoinRequest{}, &entities.Coupon{}, &entities.Guest{}, &entities.EventSegment{})
 	return db
 }
 
