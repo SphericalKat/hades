@@ -59,7 +59,7 @@ func getEvent(eSvc event.Service) http.HandlerFunc {
 		}
 
 		if evnt.OrganizationID != tk.OrgID {
-			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from accessing this resource"))
 			return
 		}
 
