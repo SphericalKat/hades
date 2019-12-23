@@ -14,21 +14,6 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 	return &repo{DB: db}
 }
 
-func (r *repo) AddSegment(segment *entities.EventSegment) error {
-	// Check for valid eventId.
-	if err := r.DB.Find(&entities.Event{ID: segment.EventID}).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return pkg.ErrNotFound
-		}
-		return pkg.ErrDatabase
-	}
-
-	if err := r.DB.Save(segment).Error; err != nil {
-		return pkg.ErrDatabase
-	}
-	return nil
-}
-
 func (r *repo) GetSegments(eventId uint) ([]entities.EventSegment, error) {
 	var segments []entities.EventSegment
 	if err := r.DB.Where("event_id = ?", eventId).Find(&segments).Error; err != nil {
@@ -44,7 +29,7 @@ func (r *repo) GetSegments(eventId uint) ([]entities.EventSegment, error) {
 func (r *repo) DeleteSegment(segmentId uint) error {
 	tx := r.DB.Begin()
 
-	if err := tx.Delete(&entities.EventSegment{SegmentID:segmentId}).Error; err != nil {
+	if err := tx.Delete(&entities.EventSegment{Day: segmentId}).Error; err != nil {
 		tx.Rollback()
 		if err == gorm.ErrRecordNotFound {
 			return pkg.ErrNotFound
@@ -57,9 +42,8 @@ func (r *repo) DeleteSegment(segmentId uint) error {
 }
 
 func (r *repo) GetParticipantsInSegment(segmentId uint) ([]entities.Participant, error) {
-	var peeps []entities.Participant
-	eveSegment := &entities.EventSegment{SegmentID:segmentId}
-	err := r.DB.Find(eveSegment).Association("PresentParticipants").Find(&peeps).Error
+	eveSegment := &entities.EventSegment{Day: segmentId}
+	err := r.DB.Find(eveSegment).Association("PresentParticipants").Find(&eveSegment.PresentParticipants).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -68,33 +52,42 @@ func (r *repo) GetParticipantsInSegment(segmentId uint) ([]entities.Participant,
 		return nil, pkg.ErrDatabase
 	}
 
-	return peeps, nil
+	return eveSegment.PresentParticipants, nil
 }
 
-func (r *repo) AddPartipantToSegment(regNo string, segmentId uint) error {
-	peep := &entities.Participant{RegNo:regNo}
-	eveSeg := &entities.EventSegment{SegmentID:segmentId}
+func (r *repo) AddPartipantToSegment(regNo string, day uint) error {
+	tx := r.DB.Begin()
+	part := &entities.Participant{}
+	eveSeg := &entities.EventSegment{Day: day}
 
-	if err := r.DB.Find(peep).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	err := tx.Where("reg_no = ?", regNo).Find(part).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
 			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
 		}
-		return pkg.ErrDatabase
 	}
 
-	if err := r.DB.Find(eveSeg).Association("PresentParticipants").Append(peep).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	err = tx.Where("day = ?", day).Find(eveSeg).Association("PresentParticipants").Append(part).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
 			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
 		}
-		return pkg.ErrDatabase
 	}
 
 	return nil
 }
 
-func (r *repo) Find(segmentId uint) (*entities.EventSegment, error) {
-	seg := &entities.EventSegment{SegmentID:segmentId}
-	if err := r.DB.Find(seg).Error; err != nil {
+func (r *repo) Find(day uint) (*entities.EventSegment, error) {
+	seg := &entities.EventSegment{}
+	if err := r.DB.Where("day = ?", day).Find(seg).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, pkg.ErrNotFound
 		}

@@ -7,11 +7,12 @@ import (
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
+	"github.com/ATechnoHazard/hades-2/pkg/segment"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
-func saveEvent(eSvc event.Service) http.HandlerFunc {
+func saveEvent(eSvc event.Service, sSvc segment.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
@@ -30,6 +31,8 @@ func saveEvent(eSvc event.Service) http.HandlerFunc {
 			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
 			return
 		}
+
+
 
 		if err := eSvc.SaveEvent(e); err != nil {
 			views.Wrap(err, w)
@@ -103,8 +106,8 @@ func deleteEvent(eSvc event.Service) http.HandlerFunc {
 	}
 }
 
-func MakeEventHandler(r *httprouter.Router, eSvc event.Service) {
-	r.HandlerFunc("POST", "/api/v2/event/save", middleware.JwtAuthentication(saveEvent(eSvc)))
+func MakeEventHandler(r *httprouter.Router, eSvc event.Service, sSvc segment.Service) {
+	r.HandlerFunc("POST", "/api/v2/event/save", middleware.JwtAuthentication(saveEvent(eSvc, sSvc)))
 	r.HandlerFunc("POST", "/api/v2/event/read", middleware.JwtAuthentication(getEvent(eSvc)))
 	r.HandlerFunc("DELETE", "/api/v2/event/delete", middleware.JwtAuthentication(deleteEvent(eSvc)))
 }

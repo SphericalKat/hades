@@ -3,7 +3,6 @@ package segment
 import "github.com/ATechnoHazard/hades-2/pkg/entities"
 
 type Service interface {
-	AddSegment(*entities.EventSegment) error
 	GetSegments(uint) ([]entities.EventSegment, error)
 	GetParticipantsInSegment(uint) ([]entities.Participant, error)
 	DeleteSegment(uint) error
@@ -19,9 +18,6 @@ func NewEventSegmentServie(repo Repository) Service {
 	return &eventSegSvc{repo:repo}
 }
 
-func (s *eventSegSvc) AddSegment(segment *entities.EventSegment) error {
-	return s.repo.AddSegment(segment)
-}
 
 func (s *eventSegSvc) GetSegments(eventId uint) ([]entities.EventSegment, error) {
 	return s.repo.GetSegments(eventId)

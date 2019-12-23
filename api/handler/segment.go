@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-func AddSegment(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
+func deleteSegment(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		seg := &entities.EventSegment{}
 		eve := &entities.Event{}
@@ -25,40 +25,7 @@ func AddSegment(segmentService segment.Service, eventService event.Service) http
 			return
 		}
 
-		eve, err := eventService.ReadEvent(seg.EventID)
-		if err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
-		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
-			return
-		}
-
-		if err := segmentService.AddSegment(seg); err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
-		utils.Respond(w, utils.Message(http.StatusOK, "Added event segment successfully."))
-	}
-}
-
-func DeleteSegment(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		seg := &entities.EventSegment{}
-		eve := &entities.Event{}
-
-		ctx := r.Context()
-		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
-
-		if err := json.NewDecoder(r.Body).Decode(seg); err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
-		seg, err := segmentService.ReadEventSegment(seg.SegmentID)
+		seg, err := segmentService.ReadEventSegment(seg.Day)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -75,7 +42,7 @@ func DeleteSegment(segmentService segment.Service, eventService event.Service) h
 			return
 		}
 
-		if err := segmentService.DeleteSegment(seg.SegmentID); err != nil {
+		if err := segmentService.DeleteSegment(seg.Day); err != nil {
 			views.Wrap(err, w)
 			return
 		}
@@ -84,7 +51,7 @@ func DeleteSegment(segmentService segment.Service, eventService event.Service) h
 	}
 }
 
-func GetSegments(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
+func getSegments(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		eve := &entities.Event{}
 
@@ -119,7 +86,7 @@ func GetSegments(segmentService segment.Service, eventService event.Service) htt
 	}
 }
 
-func GetParticipantsInSegment(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
+func getParticipantsInSegment(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		seg := &entities.EventSegment{}
 		eve := &entities.Event{}
@@ -132,7 +99,7 @@ func GetParticipantsInSegment(segmentService segment.Service, eventService event
 			return
 		}
 
-		seg, err := segmentService.ReadEventSegment(seg.SegmentID)
+		seg, err := segmentService.ReadEventSegment(seg.Day)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -149,7 +116,7 @@ func GetParticipantsInSegment(segmentService segment.Service, eventService event
 			return
 		}
 
-		peeps, err := segmentService.GetParticipantsInSegment(seg.SegmentID)
+		peeps, err := segmentService.GetParticipantsInSegment(seg.Day)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -161,7 +128,7 @@ func GetParticipantsInSegment(segmentService segment.Service, eventService event
 	}
 }
 
-func AttendEventSegment(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
+func markPresent(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		composite := &views.SegmentParticipantComposite{}
 		eve := &entities.Event{}
@@ -174,7 +141,7 @@ func AttendEventSegment(segmentService segment.Service, eventService event.Servi
 			return
 		}
 
-		seg, err := segmentService.ReadEventSegment(composite.SegmentID)
+		seg, err := segmentService.ReadEventSegment(composite.Day)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -191,25 +158,27 @@ func AttendEventSegment(segmentService segment.Service, eventService event.Servi
 			return
 		}
 
-		if err := segmentService.AddParticipantToSegment(composite.RegNo, composite.SegmentID); err != nil {
-			views.Wrap(err, w)
-			return
+		for _, part := range eve.Attendees {
+			if part.RegNo == composite.RegNo {
+				if err := segmentService.AddParticipantToSegment(composite.RegNo, composite.Day); err != nil {
+					views.Wrap(err, w)
+					return
+				}
+
+				utils.Respond(w, utils.Message(http.StatusOK, "Participant Attendance recorded successfully."))
+				return
+			}
 		}
 
-		utils.Respond(w, utils.Message(http.StatusOK, "Participant Attendance recorded successfully."))
+		utils.Respond(w, utils.Message(http.StatusNotFound, "Participant doesn't exist in this event"))
 	}
 }
 
 func MakeEventSegmentHandler(r *httprouter.Router, segmentService segment.Service, eventService event.Service) {
-	r.HandlerFunc("POST", "/api/v2/participant/add-segment",
-		middleware.JwtAuthentication(AddSegment(segmentService, eventService)))
-	r.HandlerFunc("DELETE", "/api/v2/participant/rm-segment",
-		middleware.JwtAuthentication(DeleteSegment(segmentService, eventService)))
-	r.HandlerFunc("POST", "/api/v2/participant/get-segments",
-		middleware.JwtAuthentication(GetSegments(segmentService, eventService)))
+	r.HandlerFunc("POST", "/api/v2/participant/get-days",
+		middleware.JwtAuthentication(getSegments(segmentService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/participant/get-present",
-		middleware.JwtAuthentication(GetParticipantsInSegment(segmentService, eventService)))
+		middleware.JwtAuthentication(getParticipantsInSegment(segmentService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/participant/mark-present",
-		middleware.JwtAuthentication(AttendEventSegment(segmentService, eventService)))
+		middleware.JwtAuthentication(markPresent(segmentService, eventService)))
 }
-

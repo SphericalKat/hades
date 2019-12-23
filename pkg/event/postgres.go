@@ -55,15 +55,37 @@ func (r *repo) Find(eventID uint) (*entities.Event, error) {
 }
 
 func (r *repo) Save(event *entities.Event) error {
-	err := r.DB.Save(event).Error
-	switch err {
-	case nil:
-		return nil
-	case gorm.ErrRecordNotFound:
-		return pkg.ErrNotFound
-	default:
-		return pkg.ErrDatabase
+	if event.Days == 0 {
+		return pkg.ErrInvalidSlug
 	}
+	tx := r.DB.Begin()
+	err := tx.Save(event).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	for i := uint(1); i <= event.Days; i++ {
+		s := &entities.EventSegment{EventID: event.ID, Day: i}
+		err := tx.Create(s).Error
+		if err != nil {
+			switch err {
+			case gorm.ErrRecordNotFound:
+				tx.Rollback()
+				return pkg.ErrNotFound
+			default:
+				tx.Rollback()
+				return pkg.ErrDatabase
+			}
+		}
+	}
+	tx.Commit()
+	return nil
 }
 
 func (r *repo) Delete(eventID uint) error {
