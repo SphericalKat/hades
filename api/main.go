@@ -88,13 +88,13 @@ func main() {
 	segmentSvc := segment.NewEventSegmentService(segmentRepo)
 
 	// Create and register handlers using generated services
-	handler.MakeParticipantHandler(r, partSvc, eventSvc)
-	handler.MakeUserHandler(r, userSvc)
+	handler.MakeParticipantHandler(r, partSvc, eventSvc, j)
+	handler.MakeUserHandler(r, userSvc, j)
 	handler.MakeOrgHandler(r, orgSvc, j)
-	handler.MakeGuestHandler(r, guestSvc, eventSvc)
-	handler.MakeCouponHandler(r, couponSvc, eventSvc)
-	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc)
-	handler.MakeEventHandler(r, eventSvc, segmentSvc)
+	handler.MakeGuestHandler(r, guestSvc, eventSvc, j)
+	handler.MakeCouponHandler(r, couponSvc, eventSvc, j)
+	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc, j)
+	handler.MakeEventHandler(r, eventSvc, segmentSvc, j)
 	handler.MakeAclHandler(r, j)
 
 	// listen and serve on given port

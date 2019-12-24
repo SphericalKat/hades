@@ -8,6 +8,7 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/segment"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
@@ -16,6 +17,12 @@ func saveEvent(eSvc event.Service, sSvc segment.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		e := &entities.Event{}
 		if err := json.NewDecoder(r.Body).Decode(e); err != nil {
@@ -81,6 +88,12 @@ func deleteEvent(eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		e := &entities.Event{}
 		if err := json.NewDecoder(r.Body).Decode(e); err != nil {
@@ -109,8 +122,8 @@ func deleteEvent(eSvc event.Service) http.HandlerFunc {
 	}
 }
 
-func MakeEventHandler(r *httprouter.Router, eSvc event.Service, sSvc segment.Service) {
-	r.HandlerFunc("POST", "/api/v2/event/save", middleware.JwtAuthentication(saveEvent(eSvc, sSvc)))
+func MakeEventHandler(r *httprouter.Router, eSvc event.Service, sSvc segment.Service, j *janus.Janus) {
+	r.HandlerFunc("POST", "/api/v2/event/save", middleware.JwtAuthentication(j.GetHandler(saveEvent(eSvc, sSvc))))
 	r.HandlerFunc("POST", "/api/v2/event/read", middleware.JwtAuthentication(getEvent(eSvc)))
-	r.HandlerFunc("DELETE", "/api/v2/event/delete", middleware.JwtAuthentication(deleteEvent(eSvc)))
+	r.HandlerFunc("DELETE", "/api/v2/event/delete", middleware.JwtAuthentication(j.GetHandler(deleteEvent(eSvc))))
 }

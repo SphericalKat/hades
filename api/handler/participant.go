@@ -7,6 +7,7 @@ import (
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"strconv"
@@ -17,6 +18,12 @@ func createAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 		p := &views.Participant{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
@@ -48,6 +55,13 @@ func deleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 		p := &views.Participant{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
+
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
 			return
@@ -122,6 +136,13 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 		p := &views.Participant{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
+
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
 			return
@@ -147,13 +168,13 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 	}
 }
 
-func MakeParticipantHandler(r *httprouter.Router, partSvc participant.Service, eventSvc event.Service) {
+func MakeParticipantHandler(r *httprouter.Router, partSvc participant.Service, eventSvc event.Service, j *janus.Janus) {
 	r.HandlerFunc("POST", "/api/v2/participants/create-attendee",
-		middleware.JwtAuthentication(createAttendee(partSvc, eventSvc)))
+		middleware.JwtAuthentication(j.GetHandler(createAttendee(partSvc, eventSvc))))
 	r.HandlerFunc("DELETE", "/api/v2/participants/delete-attendee",
-		middleware.JwtAuthentication(deleteAttendee(partSvc, eventSvc)))
+		middleware.JwtAuthentication(j.GetHandler(deleteAttendee(partSvc, eventSvc))))
 	r.HandlerFunc("GET", "/api/v2/participants/read-attendee",
 		middleware.JwtAuthentication(readAttendee(partSvc, eventSvc)))
 	r.HandlerFunc("POST", "/api/v2/participants/rm-attendee",
-		middleware.JwtAuthentication(rmAttendeeEvent(partSvc, eventSvc)))
+		middleware.JwtAuthentication(j.GetHandler(rmAttendeeEvent(partSvc, eventSvc))))
 }

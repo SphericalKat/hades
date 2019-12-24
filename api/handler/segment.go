@@ -8,6 +8,7 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/segment"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
@@ -168,7 +169,7 @@ func markPresent(segmentService segment.Service, eventService event.Service) htt
 	}
 }
 
-func MakeEventSegmentHandler(r *httprouter.Router, segmentService segment.Service, eventService event.Service) {
+func MakeEventSegmentHandler(r *httprouter.Router, segmentService segment.Service, eventService event.Service, j *janus.Janus) {
 	r.HandlerFunc("POST", "/api/v2/participant/get-days",
 		middleware.JwtAuthentication(getSegments(segmentService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/participant/get-present",

@@ -17,6 +17,13 @@ func acceptJoinRequest(oSvc organization.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
+
 		j := &entities.JoinRequest{}
 		if err := json.NewDecoder(r.Body).Decode(j); err != nil {
 			views.Wrap(err, w)
@@ -75,8 +82,6 @@ func loginOrg(oSvc organization.Service) http.HandlerFunc {
 			views.Wrap(err, w)
 			return
 		}
-
-
 
 		tkString, err := tk.SignedString([]byte(os.Getenv("TOKEN_PASSWORD")))
 		if err != nil {
@@ -181,10 +186,10 @@ func createOrg(oSvc organization.Service, j *janus.Janus) http.HandlerFunc {
 }
 
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service, j *janus.Janus) {
-	r.HandlerFunc("POST", "/api/v2/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/accept", middleware.JwtAuthentication(j.GetHandler(acceptJoinRequest(oSvc))))
 	r.HandlerFunc("POST", "/api/v2/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v2/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
-	r.HandlerFunc("POST", "/api/v2/org/create", middleware.JwtAuthentication(j.GetHandler(createOrg(oSvc, j))))
+	r.HandlerFunc("POST", "/api/v2/org/create", middleware.JwtAuthentication(createOrg(oSvc, j)))
 }
