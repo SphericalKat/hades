@@ -162,7 +162,7 @@ func createOrg(oSvc organization.Service, j *janus.Janus) http.HandlerFunc {
 
 		err = j.SetRights(&janus.Account{
 			OrganizationID: org.ID,
-			Key:            tk.Email,
+			CacheKey:       tk.Email,
 			Role:           "admin",
 		})
 		if err != nil {
