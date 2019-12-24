@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ATechnoHazard/hades-2/api/handler"
 	"github.com/ATechnoHazard/hades-2/pkg/coupon"
+	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/guest"
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
@@ -54,17 +55,17 @@ func connectDb() *gorm.DB {
 		db = db.Debug()
 	}
 
-	//db.AutoMigrate(&entities.Participant{}, &entities.Event{}, &entities.Organization{}, &entities.User{},
-	//	entities.JoinRequest{}, &entities.Coupon{}, &entities.Guest{}, &entities.EventSegment{})
+	db.AutoMigrate(&entities.Participant{}, &entities.Event{}, &entities.Organization{}, &entities.User{},
+		entities.JoinRequest{}, &entities.Coupon{}, &entities.Guest{}, &entities.EventSegment{})
 	return db
 }
 
 func main() {
-	r := httprouter.New() // create a router
-	n := initNegroni()    // init negroni middleware
-	n.UseHandler(r)       // wrap router with negroni middleware
-	db := connectDb()     // migrate and connect to db
-	j, err := janus.NewJanusMiddleware(db)
+	r := httprouter.New()                  // create a router
+	n := initNegroni()                     // init negroni middleware
+	n.UseHandler(r)                        // wrap router with negroni middleware
+	db := connectDb()                      // migrate and connect to db
+	j, err := janus.NewJanusMiddleware(db) // create a new instance of the janus ACL middleware
 	if err != nil {
 		log.Panic(err)
 	}
@@ -94,7 +95,7 @@ func main() {
 	handler.MakeGuestHandler(r, guestSvc, eventSvc, j)
 	handler.MakeCouponHandler(r, couponSvc, eventSvc, j)
 	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc, j)
-	handler.MakeEventHandler(r, eventSvc, segmentSvc, j)
+	handler.MakeEventHandler(r, eventSvc, j)
 	handler.MakeAclHandler(r, j)
 
 	// listen and serve on given port

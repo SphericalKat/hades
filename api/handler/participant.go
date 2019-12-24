@@ -153,18 +153,25 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 			views.Wrap(err, w)
 			return
 		}
-		if e.OrganizationID != tk.OrgID {
-			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
-			return
+
+		for _, part := range e.Attendees {
+			if part.RegNo == p.RegNo {
+				if e.OrganizationID != tk.OrgID {
+					u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+					return
+				}
+
+				if err := pSvc.RemoveAttendeeEvent(p.RegNo, p.EventId); err != nil {
+					views.Wrap(err, w)
+					return
+				}
+
+				u.Respond(w, u.Message(http.StatusOK, "Attendee successfully deleted"))
+				return
+			}
 		}
 
-		if err := pSvc.RemoveAttendeeEvent(p.RegNo, p.EventId); err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
-		u.Respond(w, u.Message(http.StatusOK, "Attendee successfully deleted"))
-		return
+		u.Respond(w, u.Message(http.StatusNotFound, "This attendee does not exist for this event"))
 	}
 }
 
@@ -175,6 +182,6 @@ func MakeParticipantHandler(r *httprouter.Router, partSvc participant.Service, e
 		middleware.JwtAuthentication(j.GetHandler(deleteAttendee(partSvc, eventSvc))))
 	r.HandlerFunc("GET", "/api/v2/participants/read-attendee",
 		middleware.JwtAuthentication(readAttendee(partSvc, eventSvc)))
-	r.HandlerFunc("POST", "/api/v2/participants/rm-attendee",
+	r.HandlerFunc("DELETE", "/api/v2/participants/rm-attendee",
 		middleware.JwtAuthentication(j.GetHandler(rmAttendeeEvent(partSvc, eventSvc))))
 }

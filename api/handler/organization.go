@@ -11,9 +11,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"os"
+	"time"
 )
 
-func acceptJoinRequest(oSvc organization.Service) http.HandlerFunc {
+func acceptJoinRequest(oSvc organization.Service, j *janus.Janus) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
@@ -24,18 +25,27 @@ func acceptJoinRequest(oSvc organization.Service) http.HandlerFunc {
 			return
 		}
 
-		j := &entities.JoinRequest{}
-		if err := json.NewDecoder(r.Body).Decode(j); err != nil {
+		jr := &entities.JoinRequest{}
+		if err := json.NewDecoder(r.Body).Decode(jr); err != nil {
 			views.Wrap(err, w)
 			return
 		}
 
-		if j.OrganizationID != tk.OrgID {
+		if jr.OrganizationID != tk.OrgID {
 			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
 			return
 		}
 
-		if err := oSvc.AcceptJoinReq(j.OrganizationID, j.Email); err != nil {
+		if err := oSvc.AcceptJoinReq(jr.OrganizationID, jr.Email); err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		if err := j.SetRights(&janus.Account{
+			OrganizationID: tk.OrgID,
+			CacheKey:       jr.Email,
+			Role:           "user",
+		}); err != nil {
 			views.Wrap(err, w)
 			return
 		}
@@ -72,12 +82,7 @@ func loginOrg(oSvc organization.Service) http.HandlerFunc {
 			return
 		}
 
-		if tkn.Email != j.Email {
-			u.Respond(w, u.Message(http.StatusUnauthorized, "You are not authorized to use this resource"))
-			return
-		}
-
-		tk, err := oSvc.LoginOrg(j.OrganizationID, j.Email)
+		tk, err := oSvc.LoginOrg(j.OrganizationID, tkn.Email)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -142,6 +147,8 @@ func createOrg(oSvc organization.Service, j *janus.Janus) http.HandlerFunc {
 			return
 		}
 
+		org.CreatedAt = time.Now() // set time of org creation
+
 		org, err := oSvc.SaveOrg(org)
 		if err != nil {
 			views.Wrap(err, w)
@@ -186,7 +193,7 @@ func createOrg(oSvc organization.Service, j *janus.Janus) http.HandlerFunc {
 }
 
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service, j *janus.Janus) {
-	r.HandlerFunc("POST", "/api/v2/org/accept", middleware.JwtAuthentication(j.GetHandler(acceptJoinRequest(oSvc))))
+	r.HandlerFunc("POST", "/api/v2/org/accept", middleware.JwtAuthentication(j.GetHandler(acceptJoinRequest(oSvc, j))))
 	r.HandlerFunc("POST", "/api/v2/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v2/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))

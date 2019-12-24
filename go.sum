@@ -13,6 +13,8 @@ github.com/ATechnoHazard/janus v0.0.0-20191224142258-8ed78f222843 h1:cbGjr58qAiq
 github.com/ATechnoHazard/janus v0.0.0-20191224142258-8ed78f222843/go.mod h1:WlHWgZb6plxjFRaxw26nL/rmhiHBBtOl6l3pKVpxomU=
 github.com/ATechnoHazard/janus v0.0.0-20191224151154-be89942aa517 h1:eRbncK5CimYl/kqUbX4Ftqo4O6ZVXvVeuuPcWnOY9Hg=
 github.com/ATechnoHazard/janus v0.0.0-20191224151154-be89942aa517/go.mod h1:WlHWgZb6plxjFRaxw26nL/rmhiHBBtOl6l3pKVpxomU=
+github.com/ATechnoHazard/janus v0.0.0-20191224181312-f05d1d337129 h1:fqmSfj2XaZRvV4Ikz/c4B1MHLuytZEwZ+t15Hy6adRM=
+github.com/ATechnoHazard/janus v0.0.0-20191224181312-f05d1d337129/go.mod h1:WlHWgZb6plxjFRaxw26nL/rmhiHBBtOl6l3pKVpxomU=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
