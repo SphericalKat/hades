@@ -1,12 +1,12 @@
 package entities
 
 type CSVParticipant struct {
-	Name        string `csv:"name"`
-	RegNo       string `csv:"reg_no" gorm:"primary_key"`
-	Email       string `csv:"email"`
-	PhoneNumber string `csv:"phone_number"`
-	Gender      string `csv:"gender"`
-	IsPresent   bool   `csv:"is_present"`
+	Name        string `csv:"name" json:"name"`
+	RegNo       string `csv:"reg_no" json:"reg_no"`
+	Email       string `csv:"email" json:"email"`
+	PhoneNumber string `csv:"phone_number" json:"phone_number"`
+	Gender      string `csv:"gender" json:"gender"`
+	IsPresent   bool   `csv:"is_present" json:"is_present"`
 }
 
 func P2CSVPTransform(part *Participant) *CSVParticipant {
