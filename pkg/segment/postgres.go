@@ -55,12 +55,23 @@ func (r *repo) GetParticipantsInSegment(day uint) ([]entities.Participant, error
 	return eveSegment.PresentParticipants, nil
 }
 
-func (r *repo) AddPartipantToSegment(regNo string, day uint) error {
+func (r *repo) AddParticipantToSegment(regNo string, day uint, eventID uint) error {
 	tx := r.DB.Begin()
 	part := &entities.Participant{}
-	eveSeg := &entities.EventSegment{Day: day}
+	eveSeg := &entities.EventSegment{}
 
 	err := tx.Where("reg_no = ?", regNo).Find(part).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	err = tx.Where("day = ?", day).Where("event_id = ?", eventID).Find(eveSeg).Error
 	if err != nil {
 		tx.Rollback()
 		switch err {

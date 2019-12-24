@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ATechnoHazard/hades-2/api/handler"
 	"github.com/ATechnoHazard/hades-2/pkg/coupon"
-	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/guest"
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
@@ -54,8 +53,8 @@ func connectDb() *gorm.DB {
 		db = db.Debug()
 	}
 
-	db.AutoMigrate(&entities.Participant{}, &entities.Event{}, &entities.Organization{}, &entities.User{},
-		entities.JoinRequest{}, &entities.Coupon{}, &entities.Guest{}, &entities.EventSegment{})
+	//db.AutoMigrate(&entities.Participant{}, &entities.Event{}, &entities.Organization{}, &entities.User{},
+	//	entities.JoinRequest{}, &entities.Coupon{}, &entities.Guest{}, &entities.EventSegment{})
 	return db
 }
 

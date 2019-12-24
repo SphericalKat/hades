@@ -32,14 +32,17 @@ func saveEvent(eSvc event.Service, sSvc segment.Service) http.HandlerFunc {
 			return
 		}
 
-
-
-		if err := eSvc.SaveEvent(e); err != nil {
+		e, err := eSvc.SaveEvent(e)
+		if err != nil {
 			views.Wrap(err, w)
 			return
 		}
 
-		u.Respond(w, u.Message(http.StatusOK, "Event successfully saved"))
+		msg := u.Message(http.StatusOK, "Event successfully saved")
+		msg["event"] = e
+
+
+		u.Respond(w, msg)
 		return
 	}
 }

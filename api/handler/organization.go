@@ -22,7 +22,12 @@ func acceptJoinRequest(oSvc organization.Service) http.HandlerFunc {
 			return
 		}
 
-		if err := oSvc.AcceptJoinReq(j.OrganizationID, tk.Email); err != nil {
+		if j.OrganizationID != tk.OrgID {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
+
+		if err := oSvc.AcceptJoinReq(j.OrganizationID, j.Email); err != nil {
 			views.Wrap(err, w)
 			return
 		}
@@ -135,6 +140,12 @@ func createOrg(oSvc organization.Service) http.HandlerFunc {
 			return
 		}
 
+		err = oSvc.AddUserToOrg(org.ID, tk.Email)
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
 		tkn, err := oSvc.LoginOrg(org.ID, tk.Email)
 		if err != nil {
 			views.Wrap(err, w)
@@ -162,5 +173,5 @@ func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
 	r.HandlerFunc("POST", "/api/v2/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
-	r.HandlerFunc("GET", "/api/v2/org/create", middleware.JwtAuthentication(createOrg(oSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/create", middleware.JwtAuthentication(createOrg(oSvc)))
 }

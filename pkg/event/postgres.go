@@ -54,9 +54,9 @@ func (r *repo) Find(eventID uint) (*entities.Event, error) {
 	}
 }
 
-func (r *repo) Save(event *entities.Event) error {
+func (r *repo) Save(event *entities.Event) (*entities.Event, error) {
 	if event.Days == 0 {
-		return pkg.ErrInvalidSlug
+		return nil, pkg.ErrInvalidSlug
 	}
 	tx := r.DB.Begin()
 	err := tx.Save(event).Error
@@ -64,9 +64,9 @@ func (r *repo) Save(event *entities.Event) error {
 		tx.Rollback()
 		switch err {
 		case gorm.ErrRecordNotFound:
-			return pkg.ErrNotFound
+			return nil, pkg.ErrNotFound
 		default:
-			return pkg.ErrDatabase
+			return nil, pkg.ErrDatabase
 		}
 	}
 
@@ -77,15 +77,15 @@ func (r *repo) Save(event *entities.Event) error {
 			switch err {
 			case gorm.ErrRecordNotFound:
 				tx.Rollback()
-				return pkg.ErrNotFound
+				return nil, pkg.ErrNotFound
 			default:
 				tx.Rollback()
-				return pkg.ErrDatabase
+				return nil, pkg.ErrDatabase
 			}
 		}
 	}
 	tx.Commit()
-	return nil
+	return event, err
 }
 
 func (r *repo) Delete(eventID uint) error {

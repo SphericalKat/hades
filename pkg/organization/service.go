@@ -18,6 +18,7 @@ type Service interface {
 	LoginOrg(orgID uint, email string) (*jwt.Token, error)
 	GetOrgJoinReqs(orgID uint) ([]entities.JoinRequest, error)
 	FindOrg(orgID uint) (*entities.Organization, error)
+	AddUserToOrg(orgID uint, email string) error
 }
 
 type orgSvc struct {
@@ -79,12 +80,12 @@ func (o *orgSvc) LoginOrg(orgID uint, email string) (*jwt.Token, error) {
 }
 
 func (o *orgSvc) GetOrgJoinReqs(orgID uint) ([]entities.JoinRequest, error) {
-	org, err := o.repo.Find(orgID)
+	joinReqs, err := o.repo.FindAllJoinReq(orgID)
 	if err != nil {
 		return nil, err
 	}
 
-	return org.JoinRequests, err
+	return joinReqs, err
 }
 
 func (o *orgSvc) FindOrg(orgID uint) (*entities.Organization, error) {
@@ -94,4 +95,8 @@ func (o *orgSvc) FindOrg(orgID uint) (*entities.Organization, error) {
 	}
 
 	return org, err
+}
+
+func (o *orgSvc) AddUserToOrg(orgID uint, email string) error {
+	return o.repo.AddUserToOrg(orgID, email)
 }

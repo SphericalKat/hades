@@ -10,4 +10,5 @@ type Repository interface {
 	SaveJoinReq(request *entities.JoinRequest) error
 	FindAllJoinReq(orgID uint) ([]entities.JoinRequest, error)
 	AcceptJoinReq(request *entities.JoinRequest) error
+	AddUserToOrg(orgID uint, email string) error
 }
