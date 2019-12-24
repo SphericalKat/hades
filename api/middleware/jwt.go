@@ -6,6 +6,7 @@ import (
 	"os"
 
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
+	"github.com/ATechnoHazard/janus"
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -13,7 +14,6 @@ type JwtContextKey string
 
 type Token struct {
 	Email string `json:"email"`
-	Role  string `json:"role"`
 	OrgID uint   `json:"org_id"`
 	jwt.StandardClaims
 }
@@ -56,6 +56,11 @@ func JwtAuthentication(next http.Handler) http.HandlerFunc {
 
 		// Everything went well, proceed with the request and set the caller to the user retrieved from the parsed token
 		ctx := context.WithValue(r.Context(), JwtContextKey("token"), tk)
+		ctx = context.WithValue(ctx, "janus_context", &janus.Account{
+			Key:            tk.Email,
+			OrganizationID: tk.OrgID,
+			Role:           "",
+		})
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r) // proceed in the middleware chain
 	}

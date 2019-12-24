@@ -3,6 +3,7 @@ module github.com/ATechnoHazard/hades-2
 go 1.13
 
 require (
+	github.com/ATechnoHazard/janus v0.0.0-20191224142258-8ed78f222843
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gocarina/gocsv v0.0.0-20191214001331-e6697589f2e0
 	github.com/jinzhu/gorm v1.9.11

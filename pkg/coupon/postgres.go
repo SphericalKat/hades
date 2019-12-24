@@ -113,7 +113,6 @@ func (r *repo) AddCouponsToAll(eventId uint) error {
 
 	// populate participants in the event.
 	err = tx.Model(eve).Association("Attendees").Find(&peeps).Error
-
 	if err == gorm.ErrRecordNotFound {
 		tx.Rollback()
 		return pkg.ErrNotFound

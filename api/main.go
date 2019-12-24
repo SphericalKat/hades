@@ -10,6 +10,7 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
 	"github.com/ATechnoHazard/hades-2/pkg/segment"
 	"github.com/ATechnoHazard/hades-2/pkg/user"
+	"github.com/ATechnoHazard/janus"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
@@ -63,6 +64,10 @@ func main() {
 	n := initNegroni()    // init negroni middleware
 	n.UseHandler(r)       // wrap router with negroni middleware
 	db := connectDb()     // migrate and connect to db
+	j, err := janus.NewJanusMiddleware(db)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	// Create postgres repos for all entities
 	partRepo := participant.NewPostgresRepo(db)
@@ -85,11 +90,12 @@ func main() {
 	// Create and register handlers using generated services
 	handler.MakeParticipantHandler(r, partSvc, eventSvc)
 	handler.MakeUserHandler(r, userSvc)
-	handler.MakeOrgHandler(r, orgSvc)
+	handler.MakeOrgHandler(r, orgSvc, j)
 	handler.MakeGuestHandler(r, guestSvc, eventSvc)
 	handler.MakeCouponHandler(r, couponSvc, eventSvc)
 	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc)
 	handler.MakeEventHandler(r, eventSvc, segmentSvc)
+	handler.MakeAclHandler(r, j)
 
 	// listen and serve on given port
 	port := os.Getenv("PORT")
@@ -99,7 +105,7 @@ func main() {
 
 	log.WithField("event", "START").Info("Listening on port " + port)
 
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), n)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", port), n)
 	if err != nil {
 		log.Panic(err)
 	}

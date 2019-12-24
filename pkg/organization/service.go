@@ -70,7 +70,7 @@ func (o *orgSvc) LoginOrg(orgID uint, email string) (*jwt.Token, error) {
 
 	for _, user := range org.Users {
 		if user.Email == email {
-			tk := middleware.Token{Email: email, OrgID: orgID, Role: "admin"}
+			tk := middleware.Token{Email: email, OrgID: orgID}
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, tk)
 			return token, nil
 		}

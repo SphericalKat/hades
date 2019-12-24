@@ -7,6 +7,7 @@ import (
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"os"
@@ -75,6 +76,8 @@ func loginOrg(oSvc organization.Service) http.HandlerFunc {
 			return
 		}
 
+
+
 		tkString, err := tk.SignedString([]byte(os.Getenv("TOKEN_PASSWORD")))
 		if err != nil {
 			views.Wrap(err, w)
@@ -124,7 +127,7 @@ func viewJoinRequests(oSvc organization.Service) http.HandlerFunc {
 	}
 }
 
-func createOrg(oSvc organization.Service) http.HandlerFunc {
+func createOrg(oSvc organization.Service, j *janus.Janus) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		org := &entities.Organization{}
 		ctx := r.Context()
@@ -152,6 +155,16 @@ func createOrg(oSvc organization.Service) http.HandlerFunc {
 			return
 		}
 
+		err = j.SetRights(&janus.Account{
+			OrganizationID: org.ID,
+			Key:            tk.Email,
+			Role:           "admin",
+		})
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
 		tkString, err := tkn.SignedString([]byte(os.Getenv("TOKEN_PASSWORD")))
 		if err != nil {
 			views.Wrap(err, w)
@@ -167,11 +180,11 @@ func createOrg(oSvc organization.Service) http.HandlerFunc {
 	}
 }
 
-func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service) {
+func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service, j *janus.Janus) {
 	r.HandlerFunc("POST", "/api/v2/org/accept", middleware.JwtAuthentication(acceptJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v2/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v2/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
-	r.HandlerFunc("POST", "/api/v2/org/create", middleware.JwtAuthentication(createOrg(oSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/create", middleware.JwtAuthentication(j.GetHandler(createOrg(oSvc, j))))
 }
