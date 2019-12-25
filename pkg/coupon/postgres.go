@@ -49,24 +49,57 @@ func (r *repo) DeleteCoupon(couponId uint) error {
 func (r *repo) RemoveCouponParticipant(couponId uint, regNo string) error {
 	tx := r.DB.Begin()
 	p := &entities.Participant{RegNo: regNo}
+	c := &entities.Coupon{}
 
-	switch tx.Find(p).Error {
+	if err := tx.Where("coupon_id = ?", couponId).Find(c).Error; err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			tx.Rollback()
+			return pkg.ErrNotFound
+		default:
+			tx.Rollback()
+			return pkg.ErrDatabase
+		}
+	}
+
+	switch tx.Where("reg_no = ?", p.RegNo).Find(p).Error {
 	case gorm.ErrRecordNotFound:
+		tx.Rollback()
 		return pkg.ErrNotFound
 
 	case nil:
-		err := tx.Model(p).Association("Coupons").Delete(&entities.Coupon{CouponId: couponId}).Error
+		var coups []entities.Coupon
+		err := tx.Model(p).Association("Coupons").Find(&coups).Error
+
 
 		switch err {
 		case gorm.ErrRecordNotFound:
+			tx.Rollback()
 			return pkg.ErrNotFound
 		case nil:
+			flag := false
+			for _, cp := range coups {
+				if cp.CouponId == couponId {
+					flag = true
+				}
+			}
+			if !flag {
+				return pkg.ErrNotFound
+			}
+			err := tx.Find(p).Association("Coupons").Delete(c).Error
+			if err != nil {
+				return pkg.ErrDatabase
+			}
+
+			tx.Commit()
 			return nil
 		default:
+			tx.Rollback()
 			return pkg.ErrDatabase
 		}
 
 	default:
+		tx.Rollback()
 		return pkg.ErrDatabase
 	}
 }
@@ -133,7 +166,7 @@ func (r *repo) AddCouponsToAll(eventId uint) error {
 			}
 		}
 	}
-
+	tx.Commit()
 	return nil
 }
 
