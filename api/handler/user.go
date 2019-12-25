@@ -2,16 +2,16 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/user"
-	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
-	"os"
-	"time"
 )
 
 func signUp(uSvc user.Service) http.HandlerFunc {
@@ -102,7 +102,7 @@ func getAllUsers(uSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func MakeUserHandler(r *httprouter.Router, uSvc user.Service, j *janus.Janus) {
+func MakeUserHandler(r *httprouter.Router, uSvc user.Service) {
 	r.HandlerFunc("POST", "/api/v2/org/signup", signUp(uSvc))
 	r.HandlerFunc("POST", "/api/v2/org/login", login(uSvc))
 	r.HandlerFunc("GET", "/api/v2/org/", middleware.JwtAuthentication(getUserOrgs(uSvc)))

@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/ATechnoHazard/hades-2/api/handler"
 	"github.com/ATechnoHazard/hades-2/pkg/coupon"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
@@ -20,8 +23,6 @@ import (
 	negronilogrus "github.com/meatballhat/negroni-logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
-	"net/http"
-	"os"
 )
 
 func init() {
@@ -90,11 +91,11 @@ func main() {
 
 	// Create and register handlers using generated services
 	handler.MakeParticipantHandler(r, partSvc, eventSvc, j)
-	handler.MakeUserHandler(r, userSvc, j)
+	handler.MakeUserHandler(r, userSvc)
 	handler.MakeOrgHandler(r, orgSvc, j)
 	handler.MakeGuestHandler(r, guestSvc, eventSvc, j)
 	handler.MakeCouponHandler(r, couponSvc, eventSvc, j)
-	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc, j)
+	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc)
 	handler.MakeEventHandler(r, eventSvc, j)
 	handler.MakeAclHandler(r, j)
 
