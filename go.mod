@@ -14,6 +14,7 @@ require (
 	github.com/meatballhat/negroni-logrus v1.1.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/urfave/negroni v1.0.0
+	github.com/wI2L/jettison v0.4.1
 	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915
 	golang.org/x/sys v0.0.0-20191224085550-c709ea063b76 // indirect
 )

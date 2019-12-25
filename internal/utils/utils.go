@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/wI2L/jettison"
 )
 
 func Message(status int, message string) map[string]interface{} {
@@ -11,5 +12,6 @@ func Message(status int, message string) map[string]interface{} {
 
 func Respond(w http.ResponseWriter, data map[string]interface{}) {
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
-	_ = json.NewEncoder(w).Encode(data)
+	d, _ := jettison.Marshal(data)
+	_, _ = w.Write(d)
 }

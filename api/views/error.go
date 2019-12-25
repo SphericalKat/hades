@@ -1,11 +1,12 @@
 package views
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
-	pkg "github.com/ATechnoHazard/hades-2/pkg"
+	"github.com/wI2L/jettison"
+
+	"github.com/ATechnoHazard/hades-2/pkg"
 )
 
 type ErrView struct {
@@ -54,5 +55,6 @@ func Wrap(err error, w http.ResponseWriter) {
 	//	"code":    code,
 	//}).Error("Error occurred")
 
-	_ = json.NewEncoder(w).Encode(errView)
+	data, _ := jettison.Marshal(errView)
+	_, _ = w.Write(data)
 }
