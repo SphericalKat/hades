@@ -2,20 +2,27 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
-	"github.com/ATechnoHazard/hades-2/pkg/segment"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
 )
 
-func saveEvent(eSvc event.Service, sSvc segment.Service) http.HandlerFunc {
+func saveEvent(eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		e := &entities.Event{}
 		if err := json.NewDecoder(r.Body).Decode(e); err != nil {
@@ -32,14 +39,16 @@ func saveEvent(eSvc event.Service, sSvc segment.Service) http.HandlerFunc {
 			return
 		}
 
-
-
-		if err := eSvc.SaveEvent(e); err != nil {
+		e, err := eSvc.SaveEvent(e)
+		if err != nil {
 			views.Wrap(err, w)
 			return
 		}
 
-		u.Respond(w, u.Message(http.StatusOK, "Event successfully saved"))
+		msg := u.Message(http.StatusOK, "Event successfully saved")
+		msg["event"] = e
+
+		u.Respond(w, msg)
 		return
 	}
 }
@@ -78,6 +87,12 @@ func deleteEvent(eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		e := &entities.Event{}
 		if err := json.NewDecoder(r.Body).Decode(e); err != nil {
@@ -106,8 +121,8 @@ func deleteEvent(eSvc event.Service) http.HandlerFunc {
 	}
 }
 
-func MakeEventHandler(r *httprouter.Router, eSvc event.Service, sSvc segment.Service) {
-	r.HandlerFunc("POST", "/api/v2/event/save", middleware.JwtAuthentication(saveEvent(eSvc, sSvc)))
+func MakeEventHandler(r *httprouter.Router, eSvc event.Service, j *janus.Janus) {
+	r.HandlerFunc("POST", "/api/v2/event/save", middleware.JwtAuthentication(j.GetHandler(saveEvent(eSvc))))
 	r.HandlerFunc("POST", "/api/v2/event/read", middleware.JwtAuthentication(getEvent(eSvc)))
-	r.HandlerFunc("DELETE", "/api/v2/event/delete", middleware.JwtAuthentication(deleteEvent(eSvc)))
+	r.HandlerFunc("DELETE", "/api/v2/event/delete", middleware.JwtAuthentication(j.GetHandler(deleteEvent(eSvc))))
 }

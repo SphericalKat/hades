@@ -6,7 +6,7 @@ import (
 
 type Organization struct {
 	ID           uint          `json:"org_id" gorm:"primary_key;AUTO_INCREMENT"`
-	Name         string        `json:"name"`
+	Name         string        `json:"name" gorm:"unique"`
 	Location     string        `json:"location"`
 	Description  string        `json:"description"`
 	Tag          string        `json:"tag"`

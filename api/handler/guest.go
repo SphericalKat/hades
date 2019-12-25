@@ -7,15 +7,22 @@ import (
 	"github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/guest"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
-func CreateGuest(guestService guest.Service, eventService event.Service) http.HandlerFunc {
+func createGuest(guestService guest.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		gus := &views.Guest{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		if err := json.NewDecoder(r.Body).Decode(gus); err != nil {
 			views.Wrap(err, w)
@@ -43,11 +50,17 @@ func CreateGuest(guestService guest.Service, eventService event.Service) http.Ha
 	}
 }
 
-func RemoveGuestEvent(guestService guest.Service, eventService event.Service) http.HandlerFunc {
+func removeGuestEvent(guestService guest.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		gus := &views.Guest{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		if err := json.NewDecoder(r.Body).Decode(gus); err != nil {
 			views.Wrap(err, w)
@@ -71,7 +84,6 @@ func RemoveGuestEvent(guestService guest.Service, eventService event.Service) ht
 			return
 		}
 
-
 		if err := guestService.RemoveGuestEvent(gus.Email, gus.EventId); err != nil {
 			views.Wrap(err, w)
 			return
@@ -82,7 +94,7 @@ func RemoveGuestEvent(guestService guest.Service, eventService event.Service) ht
 	}
 }
 
-func GetAllGuests(guestService guest.Service, eventService event.Service) http.HandlerFunc {
+func getAllGuests(guestService guest.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		gus := &views.Guest{}
 
@@ -118,7 +130,7 @@ func GetAllGuests(guestService guest.Service, eventService event.Service) http.H
 	}
 }
 
-func GetGuest(guestService guest.Service, eventService event.Service) http.HandlerFunc {
+func getGuest(guestService guest.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		gus := &views.Guest{}
 
@@ -155,13 +167,13 @@ func GetGuest(guestService guest.Service, eventService event.Service) http.Handl
 	}
 }
 
-func MakeGuestHandler(r *httprouter.Router, guestService guest.Service, eventService event.Service) {
+func MakeGuestHandler(r *httprouter.Router, guestService guest.Service, eventService event.Service, j *janus.Janus) {
 	r.HandlerFunc("POST", "/api/v2/guests/create-guest",
-		middleware.JwtAuthentication(CreateGuest(guestService, eventService)))
+		middleware.JwtAuthentication(j.GetHandler(createGuest(guestService, eventService))))
 	r.HandlerFunc("POST", "/api/v2/guests/get-guest",
-		middleware.JwtAuthentication(GetGuest(guestService, eventService)))
+		middleware.JwtAuthentication(getGuest(guestService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/guests/all-guests",
-		middleware.JwtAuthentication(GetAllGuests(guestService, eventService)))
+		middleware.JwtAuthentication(getAllGuests(guestService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/guests/remove-guest",
-		middleware.JwtAuthentication(RemoveGuestEvent(guestService, eventService)))
+		middleware.JwtAuthentication(j.GetHandler(removeGuestEvent(guestService, eventService))))
 }

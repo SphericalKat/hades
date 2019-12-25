@@ -2,14 +2,16 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	"github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/segment"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
 )
 
 func deleteSegment(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
@@ -38,7 +40,7 @@ func deleteSegment(segmentService segment.Service, eventService event.Service) h
 		}
 
 		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resouce."))
+			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
 
@@ -148,13 +150,13 @@ func markPresent(segmentService segment.Service, eventService event.Service) htt
 		}
 
 		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resouce."))
+			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
 
 		for _, part := range eve.Attendees {
 			if part.RegNo == composite.RegNo {
-				if err := segmentService.AddParticipantToSegment(composite.RegNo, composite.Day); err != nil {
+				if err := segmentService.AddParticipantToSegment(composite.RegNo, composite.Day, composite.EventID); err != nil {
 					views.Wrap(err, w)
 					return
 				}
@@ -168,7 +170,7 @@ func markPresent(segmentService segment.Service, eventService event.Service) htt
 	}
 }
 
-func MakeEventSegmentHandler(r *httprouter.Router, segmentService segment.Service, eventService event.Service) {
+func MakeEventSegmentHandler(r *httprouter.Router, segmentService segment.Service, eventService event.Service, j *janus.Janus) {
 	r.HandlerFunc("POST", "/api/v2/participant/get-days",
 		middleware.JwtAuthentication(getSegments(segmentService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/participant/get-present",

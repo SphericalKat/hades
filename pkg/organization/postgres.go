@@ -25,7 +25,8 @@ func (r *repo) Save(organization *entities.Organization) (*entities.Organization
 func (r *repo) Find(orgID uint) (*entities.Organization, error) {
 	org := &entities.Organization{ID: orgID}
 	tx := r.DB.Begin()
-	err := tx.Find(org).Association("Events").Find(&org.Events).Error
+	// find org
+	err := tx.Where("id = ?", orgID).Find(org).Error
 	if err != nil {
 		tx.Rollback()
 		switch err {
@@ -36,6 +37,19 @@ func (r *repo) Find(orgID uint) (*entities.Organization, error) {
 		}
 	}
 
+	// find org events
+	err = tx.Find(org).Association("Events").Find(&org.Events).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return nil, pkg.ErrNotFound
+		default:
+			return nil, pkg.ErrDatabase
+		}
+	}
+
+	// find org users
 	err = tx.Find(org).Association("Users").Find(&org.Users).Error
 	if err != nil {
 		tx.Rollback()
@@ -47,6 +61,7 @@ func (r *repo) Find(orgID uint) (*entities.Organization, error) {
 		}
 	}
 
+	// find org join requests
 	err = tx.Find(org).Association("JoinRequests").Find(&org.JoinRequests).Error
 	switch err {
 	case nil:
@@ -116,14 +131,29 @@ func (r *repo) SaveJoinReq(request *entities.JoinRequest) error {
 }
 
 func (r *repo) FindAllJoinReq(orgID uint) ([]entities.JoinRequest, error) {
-	org := &entities.Organization{ID: orgID}
-	err := r.DB.Find(org).Association("JoinRequests").Find(&org.JoinRequests).Error
+	org := &entities.Organization{}
+
+	tx := r.DB.Begin()
+	err := tx.Where("id = ?", orgID).Find(org).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return nil, pkg.ErrNotFound
+		default:
+			return nil, pkg.ErrDatabase
+		}
+	}
+	err = tx.Find(org).Association("JoinRequests").Find(&org.JoinRequests).Error
 	switch err {
 	case nil:
+		tx.Commit()
 		return org.JoinRequests, nil
 	case gorm.ErrRecordNotFound:
+		tx.Rollback()
 		return nil, pkg.ErrNotFound
 	default:
+		tx.Rollback()
 		return nil, pkg.ErrDatabase
 	}
 }
@@ -177,6 +207,45 @@ func (r *repo) AcceptJoinReq(request *entities.JoinRequest) error {
 		tx.Rollback()
 		return pkg.ErrDatabase
 	}
+}
+
+func (r *repo) AddUserToOrg(orgID uint, email string) error {
+	tx := r.DB.Begin()
+	org := &entities.Organization{}
+	u := &entities.User{}
+
+	// find if org exists
+	err := tx.Where("id = ?", orgID).Find(org).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrAlreadyExists
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	// find user
+	err = tx.Where("email = ?", email).Find(u).Error
+	if err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrAlreadyExists
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	// add user to org
+	err = tx.Find(org).Association("Users").Append(u).Error
+	if err != nil {
+		tx.Rollback()
+		return pkg.ErrDatabase
+	}
+	tx.Commit()
+	return nil
 }
 
 func NewPostgresRepo(db *gorm.DB) Repository {

@@ -4,19 +4,26 @@ import (
 	"encoding/json"
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
-	"github.com/ATechnoHazard/hades-2/internal/utils"
+	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/coupon"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
-func SaveCoupon(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request) {
+func saveCoupon(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		coup := &entities.Coupon{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		if err := json.NewDecoder(r.Body).Decode(coup); err != nil {
 			views.Wrap(err, w)
@@ -32,7 +39,7 @@ func SaveCoupon(couponService coupon.Service, eventService event.Service) http.H
 		}
 
 		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
 
@@ -41,22 +48,26 @@ func SaveCoupon(couponService coupon.Service, eventService event.Service) http.H
 			return
 		}
 
-		utils.Respond(w, utils.Message(http.StatusOK, "saved coupon successfully."))
+		u.Respond(w, u.Message(http.StatusOK, "saved coupon successfully."))
 	}
 }
 
-func DeleteCoupon(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
+func deleteCoupon(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		coup := &entities.Coupon{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		if err := json.NewDecoder(r.Body).Decode(coup); err != nil {
 			views.Wrap(err, w)
 			return
 		}
-
-
 
 		eve := &entities.Event{}
 		eve, err := eventService.ReadEvent(coup.EventId)
@@ -67,7 +78,7 @@ func DeleteCoupon(couponService coupon.Service, eventService event.Service) http
 		}
 
 		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
 
@@ -78,22 +89,21 @@ func DeleteCoupon(couponService coupon.Service, eventService event.Service) http
 		}
 
 		if !v {
-			utils.Respond(w, utils.Message(http.StatusConflict, "The coupon and event are not related."))
+			u.Respond(w, u.Message(http.StatusConflict, "The coupon and event are not related."))
 			return
 		}
-
 
 		if err := couponService.DeleteCoupon(coup.CouponId); err != nil {
 			views.Wrap(err, w)
 			return
 		}
 
-		utils.Respond(w, utils.Message(http.StatusOK, "Coupon deleted successfully."))
+		u.Respond(w, u.Message(http.StatusOK, "Coupon deleted successfully."))
 	}
 }
 
-func RedeemCoupon(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request) {
+func redeemCoupon(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		composite := &views.CouponParticipantComposite{}
 
 		ctx := r.Context()
@@ -113,7 +123,7 @@ func RedeemCoupon(couponService coupon.Service, eventService event.Service) http
 		}
 
 		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
 
@@ -124,7 +134,7 @@ func RedeemCoupon(couponService coupon.Service, eventService event.Service) http
 		}
 
 		if !v {
-			utils.Respond(w, utils.Message(http.StatusConflict, "The coupon and event are not related."))
+			u.Respond(w, u.Message(http.StatusConflict, "The coupon and event are not related."))
 			return
 		}
 
@@ -133,12 +143,12 @@ func RedeemCoupon(couponService coupon.Service, eventService event.Service) http
 			return
 		}
 
-		utils.Respond(w, utils.Message(http.StatusOK, "Successfully redeemed coupon."))
+		u.Respond(w, u.Message(http.StatusOK, "Successfully redeemed coupon."))
 	}
 }
 
-func AddAllCoupons(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request) {
+func addAllCoupons(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		coup := &entities.Coupon{}
 
 		ctx := r.Context()
@@ -158,7 +168,7 @@ func AddAllCoupons(couponService coupon.Service, eventService event.Service) htt
 		}
 
 		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
 
@@ -167,7 +177,7 @@ func AddAllCoupons(couponService coupon.Service, eventService event.Service) htt
 			return
 		}
 
-		utils.Respond(w, utils.Message(http.StatusOK, "Added coupons to all participants successfully."))
+		u.Respond(w, u.Message(http.StatusOK, "Added coupons to all participants successfully."))
 	}
 }
 
@@ -191,7 +201,7 @@ func GetCoupons(couponService coupon.Service, eventService event.Service) http.H
 		}
 
 		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
 
@@ -204,21 +214,21 @@ func GetCoupons(couponService coupon.Service, eventService event.Service) http.H
 			return
 		}
 
-		msg := utils.Message(http.StatusOK, "Retrieved all coupons successfully")
+		msg := u.Message(http.StatusOK, "Retrieved all coupons successfully")
 		msg["coupons"] = coups
-		utils.Respond(w, msg)
+		u.Respond(w, msg)
 	}
 }
 
-func MakeCouponHandler(r *httprouter.Router, couponService coupon.Service, eventService event.Service) {
+func MakeCouponHandler(r *httprouter.Router, couponService coupon.Service, eventService event.Service, j *janus.Janus) {
 	r.HandlerFunc("POST", "/api/v2/coupon/save-coupon",
-		middleware.JwtAuthentication(SaveCoupon(couponService, eventService)))
+		middleware.JwtAuthentication(j.GetHandler(saveCoupon(couponService, eventService))))
 	r.HandlerFunc("DELETE", "/api/v2/coupon/delete-coupon",
-		middleware.JwtAuthentication(DeleteCoupon(couponService, eventService)))
+		middleware.JwtAuthentication(j.GetHandler(deleteCoupon(couponService, eventService))))
 	r.HandlerFunc("POST", "/api/v2/coupon/redeem-coupon",
-		middleware.JwtAuthentication(RedeemCoupon(couponService, eventService)))
+		middleware.JwtAuthentication(redeemCoupon(couponService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/coupon/add-all-coupons",
-		middleware.JwtAuthentication(AddAllCoupons(couponService, eventService)))
+		middleware.JwtAuthentication(addAllCoupons(couponService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/coupon/get-coupons",
 		middleware.JwtAuthentication(GetCoupons(couponService, eventService)))
 }

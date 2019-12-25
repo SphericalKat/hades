@@ -16,7 +16,7 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 
 func (r *repo) FindAll(eventId uint) ([]entities.Participant, error) {
 	var participants []entities.Participant
-	eve := &entities.Event{ID:eventId}
+	eve := &entities.Event{ID: eventId}
 	err := r.DB.Find(eve).Error
 
 	if err == gorm.ErrRecordNotFound {

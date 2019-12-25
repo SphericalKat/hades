@@ -2,14 +2,16 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+	"strconv"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
+	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
-	"strconv"
 )
 
 func createAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
@@ -17,6 +19,12 @@ func createAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 		p := &views.Participant{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
 
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
@@ -48,6 +56,13 @@ func deleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 		p := &views.Participant{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
+
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
 			return
@@ -72,7 +87,7 @@ func deleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 	}
 }
 
-func readAttendee(pSvc participant.Service) http.HandlerFunc {
+func readAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		regNo, ok := r.URL.Query()["reg_no"]
 		if !ok || len(regNo) < 1 {
@@ -92,7 +107,18 @@ func readAttendee(pSvc participant.Service) http.HandlerFunc {
 			return
 		}
 
-		a, err := pSvc.ReadAttendee(regNo[0], uint(eID))
+		ctx := r.Context()
+		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		e, err := eSvc.ReadEvent(uint(eID))
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+		if e.OrganizationID != tk.OrgID {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from accessing this resource"))
+		}
+
+		a, err := pSvc.ReadAttendee(regNo[0], e.ID)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -111,6 +137,13 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 		p := &views.Participant{}
 		ctx := r.Context()
 		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
+
 		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
 			views.Wrap(err, w)
 			return
@@ -121,33 +154,35 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 			views.Wrap(err, w)
 			return
 		}
-		if e.OrganizationID != tk.OrgID {
-			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
-			return
+
+		for _, part := range e.Attendees {
+			if part.RegNo == p.RegNo {
+				if e.OrganizationID != tk.OrgID {
+					u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+					return
+				}
+
+				if err := pSvc.RemoveAttendeeEvent(p.RegNo, p.EventId); err != nil {
+					views.Wrap(err, w)
+					return
+				}
+
+				u.Respond(w, u.Message(http.StatusOK, "Attendee successfully deleted"))
+				return
+			}
 		}
 
-		if err := pSvc.RemoveAttendeeEvent(p.RegNo, p.EventId); err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
-		u.Respond(w, u.Message(http.StatusOK, "Attendee successfully deleted"))
-		return
+		u.Respond(w, u.Message(http.StatusNotFound, "This attendee does not exist for this event"))
 	}
 }
 
-func MakeParticipantHandler(r *httprouter.Router, partSvc participant.Service, eventSvc event.Service) {
-	r.HandlerFunc("GET", "/api/v1/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		return
-	}))
-
+func MakeParticipantHandler(r *httprouter.Router, partSvc participant.Service, eventSvc event.Service, j *janus.Janus) {
 	r.HandlerFunc("POST", "/api/v2/participants/create-attendee",
-		middleware.JwtAuthentication(createAttendee(partSvc, eventSvc)))
+		middleware.JwtAuthentication(j.GetHandler(createAttendee(partSvc, eventSvc))))
 	r.HandlerFunc("DELETE", "/api/v2/participants/delete-attendee",
-		middleware.JwtAuthentication(deleteAttendee(partSvc, eventSvc)))
+		middleware.JwtAuthentication(j.GetHandler(deleteAttendee(partSvc, eventSvc))))
 	r.HandlerFunc("GET", "/api/v2/participants/read-attendee",
-		middleware.JwtAuthentication(readAttendee(partSvc)))
-	r.HandlerFunc("POST", "/api/v2/participants/rm-attendee",
-		middleware.JwtAuthentication(rmAttendeeEvent(partSvc, eventSvc)))
+		middleware.JwtAuthentication(readAttendee(partSvc, eventSvc)))
+	r.HandlerFunc("DELETE", "/api/v2/participants/rm-attendee",
+		middleware.JwtAuthentication(j.GetHandler(rmAttendeeEvent(partSvc, eventSvc))))
 }
