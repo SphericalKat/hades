@@ -16,7 +16,7 @@ type couponSvc struct {
 }
 
 func NewCouponService(r Repository) Service {
-	return &couponSvc{repo:r}
+	return &couponSvc{repo: r}
 }
 
 func (s *couponSvc) SaveCoupon(coupons *entities.Coupon) error {

@@ -15,9 +15,8 @@ type eventSegSvc struct {
 }
 
 func NewEventSegmentService(repo Repository) Service {
-	return &eventSegSvc{repo:repo}
+	return &eventSegSvc{repo: repo}
 }
-
 
 func (s *eventSegSvc) GetSegments(eventId uint) ([]entities.EventSegment, error) {
 	return s.repo.GetSegments(eventId)

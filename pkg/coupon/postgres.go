@@ -138,7 +138,7 @@ func (r *repo) AddCouponsToAll(eventId uint) error {
 }
 
 func (r *repo) VerifyCoupon(eventId uint, couponId uint) (bool, error) {
-	coup := &entities.Coupon{CouponId:couponId}
+	coup := &entities.Coupon{CouponId: couponId}
 	err := r.DB.Find(coup).Error
 
 	if err == nil {

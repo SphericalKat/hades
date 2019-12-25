@@ -57,7 +57,7 @@ func JwtAuthentication(next http.Handler) http.HandlerFunc {
 		// Everything went well, proceed with the request and set the caller to the user retrieved from the parsed token
 		ctx := context.WithValue(r.Context(), JwtContextKey("token"), tk)
 		ctx = context.WithValue(ctx, "janus_context", &janus.Account{
-			CacheKey:            tk.Email,
+			CacheKey:       tk.Email,
 			OrganizationID: tk.OrgID,
 			Role:           "",
 		})

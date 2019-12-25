@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
@@ -9,7 +11,6 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
 )
 
 func saveEvent(eSvc event.Service) http.HandlerFunc {
@@ -46,7 +47,6 @@ func saveEvent(eSvc event.Service) http.HandlerFunc {
 
 		msg := u.Message(http.StatusOK, "Event successfully saved")
 		msg["event"] = e
-
 
 		u.Respond(w, msg)
 		return

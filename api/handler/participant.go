@@ -2,6 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+	"strconv"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
@@ -9,8 +12,6 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/participant"
 	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
-	"strconv"
 )
 
 func createAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
@@ -114,7 +115,7 @@ func readAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc
 			return
 		}
 		if e.OrganizationID != tk.OrgID {
-			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from accessing this resource"))
 		}
 
 		a, err := pSvc.ReadAttendee(regNo[0], e.ID)

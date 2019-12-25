@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	"github.com/ATechnoHazard/hades-2/internal/utils"
@@ -10,7 +12,6 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/segment"
 	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
 )
 
 func deleteSegment(segmentService segment.Service, eventService event.Service) http.HandlerFunc {
@@ -39,7 +40,7 @@ func deleteSegment(segmentService segment.Service, eventService event.Service) h
 		}
 
 		if tk.OrgID != eve.OrganizationID {
-			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resouce."))
+			utils.Respond(w, utils.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
 			return
 		}
 
