@@ -21,3 +21,9 @@ vendor/
 .env
 tmp
 api/main
+main
+hades
+
+ops/traefik/acme.json
+
+db

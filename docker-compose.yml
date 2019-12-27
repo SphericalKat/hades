@@ -1,0 +1,64 @@
+version: "3.7"
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+
+services:
+  main:
+    build:
+      context: .
+      dockerfile: ./ops/images/go.Dockerfile
+    depends_on:
+      - db
+      - traefik
+    container_name: main
+    env_file: ./.env
+    environment:
+      DB_URI: "${DB_URI}"
+      ENV: "${ENV}"
+    labels:
+      - traefik.backend=main
+      - traefik.frontend.rule=Host:hades.dscvit.com;PathPrefix:/api/v2
+      - traefik.docker.network=web
+      - traefik.port=4000
+    networks:
+      - internal
+      - web
+
+  db:
+    image: postgres:10.4
+    restart: always
+    container_name: db
+    ports:
+      - 5432:5432
+    env_file: ./.env
+    volumes:
+      - ./db:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    networks:
+      - internal
+    labels:
+      - traefik.enable=false
+  
+  traefik:
+    image: traefik:1.7.2-alpine
+    restart: always
+    container_name: traefik
+    networks:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./ops/traefik/traefik.toml:/traefik.toml
+      - ./ops/traefik/acme.json:/acme.json
+    labels:
+      - traefik.frontend.rule=Host:hades.dscvit.com
+      - traefik.port=8080

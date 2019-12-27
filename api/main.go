@@ -28,9 +28,12 @@ import (
 func init() {
 	log.SetFormatter(&log.JSONFormatter{PrettyPrint: true})
 	log.SetOutput(os.Stdout)
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
+	log.Printf("Running on %s", os.Getenv("ENV"))
+	if os.Getenv("ENV") != "PROD" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
