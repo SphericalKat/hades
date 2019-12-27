@@ -13,6 +13,7 @@ services:
       dockerfile: ./ops/images/go.Dockerfile
     depends_on:
       - db
+      - traefik
     container_name: main
     env_file: ./.env
     environment:
@@ -29,6 +30,7 @@ services:
 
   db:
     image: postgres:10.4
+    restart: always
     container_name: db
     ports:
       - 5432:5432
@@ -43,3 +45,20 @@ services:
       - internal
     labels:
       - traefik.enable=false
+  
+  traefik:
+    image: traefik:1.7.2-alpine
+    restart: always
+    container_name: traefik
+    networks:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./ops/traefik/traefik.toml:/traefik.toml
+      - ./ops/traefik/acme.json:/acme.json
+    labels:
+      - traefik.frontend.rule=Host:hades.dscvit.com
+      - traefik.port=8080
