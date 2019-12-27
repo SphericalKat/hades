@@ -34,14 +34,20 @@ func (r *repo) FindGuestEvent(email string, eventId uint) (*entities.Guest, erro
 }
 
 func (r *repo) FindAllGuestEvent(eventId uint) ([]entities.Guest, error) {
+	tx := r.DB.Begin()
 	eve := &entities.Event{ID: eventId}
-	err := r.DB.Find(eve).Error
+	err := tx.Find(eve).Error
 	switch err {
 	case gorm.ErrRecordNotFound:
+		tx.Rollback()
 		return nil, pkg.ErrNotFound
 	case nil:
+		if err := tx.Find(eve).Association("Guests").Find(&eve.Guests).Error; err != nil {
+			return nil, pkg.ErrDatabase
+		}
 		return eve.Guests, nil
 	default:
+		tx.Rollback()
 		return nil, pkg.ErrDatabase
 	}
 }

@@ -140,7 +140,7 @@ func getParticipantsJSONData(eventService event.Service, segmentService segment.
 	}
 }
 
-func MakeExporterHandlers(r *httprouter.Router, eventService event.Service, segmentService segment.Service) {
+func MakeExporterHandler(r *httprouter.Router, eventService event.Service, segmentService segment.Service) {
 	r.HandlerFunc("POST", "/api/v2/export/csv",
 		middleware.JwtAuthentication(getParticipantsCSVData(eventService, segmentService)))
 	r.HandlerFunc("POST", "/api/v2/export/json",

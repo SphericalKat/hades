@@ -98,6 +98,7 @@ func main() {
 	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc)
 	handler.MakeEventHandler(r, eventSvc, j)
 	handler.MakeAclHandler(r, j)
+	handler.MakeExporterHandler(r, eventSvc, segmentSvc)
 
 	// listen and serve on given port
 	port := os.Getenv("PORT")

@@ -82,7 +82,7 @@ func deleteCoupon(couponService coupon.Service, eventService event.Service) http
 			return
 		}
 
-		v, err := couponService.VerifyCoupon(coup.CouponId, coup.EventId)
+		v, err := couponService.VerifyCoupon(coup.EventId, coup.CouponId)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -228,7 +228,7 @@ func MakeCouponHandler(r *httprouter.Router, couponService coupon.Service, event
 	r.HandlerFunc("POST", "/api/v2/coupon/redeem-coupon",
 		middleware.JwtAuthentication(redeemCoupon(couponService, eventService)))
 	r.HandlerFunc("POST", "/api/v2/coupon/add-all-coupons",
-		middleware.JwtAuthentication(addAllCoupons(couponService, eventService)))
+		middleware.JwtAuthentication(j.GetHandler(addAllCoupons(couponService, eventService))))
 	r.HandlerFunc("POST", "/api/v2/coupon/get-coupons",
 		middleware.JwtAuthentication(GetCoupons(couponService, eventService)))
 }
