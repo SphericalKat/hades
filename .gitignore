@@ -23,6 +23,7 @@ tmp
 api/main
 main
 hades
+bin
 
 ops/traefik/acme.json
 
