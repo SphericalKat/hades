@@ -1,10 +1,12 @@
-version: "3.2"
+version: "3.7"
 
 services:
   main:
     build:
       context: .
       dockerfile: ./ops/images/go.Dockerfile
+    depends_on:
+      - db
     container_name: main
     ports:
       - 4000:4000
@@ -20,7 +22,7 @@ services:
       - 5432:5432
     env_file: ./.env
     volumes:
-    - ./db:/var/lib/postgresql
+      - ./db:/var/lib/postgresql
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
