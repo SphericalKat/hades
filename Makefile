@@ -8,4 +8,4 @@ run:
 
 .phony: docker_build
 docker_build:
-	docker image build -t main_hades -f ./ops/images/go.Dockerfile .
+	docker image build -t gdgvit/hades-2.0 -f ./ops/images/go.Dockerfile .
