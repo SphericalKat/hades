@@ -8,9 +8,7 @@ networks:
 
 services:
   main:
-    build:
-      context: .
-      dockerfile: ./ops/images/go.Dockerfile
+    image: docker.pkg.github.com/atechnohazard/hades/hades:latest
     depends_on:
       - db
       - traefik
@@ -62,3 +60,12 @@ services:
     labels:
       - traefik.frontend.rule=Host:hades.dscvit.com
       - traefik.port=8080
+
+  watchtower:
+    image: v2tec/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json
+    command: --interval 30
+    labels:
+      - traefik.enable=false
