@@ -1,6 +1,6 @@
 # Builder
 
-FROM golang:1.13.0-stretch as builder
+FROM golang:alpine as builder
 
 RUN mkdir /app
 
