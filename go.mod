@@ -6,7 +6,7 @@ require (
 	github.com/ATechnoHazard/janus v0.0.0-20191224181312-f05d1d337129
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gocarina/gocsv v0.0.0-20191214001331-e6697589f2e0
-	github.com/jinzhu/gorm v1.9.11
+	github.com/jinzhu/gorm v1.9.12
 	github.com/joho/godotenv v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
@@ -15,6 +15,6 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/urfave/negroni v1.0.0
 	github.com/wI2L/jettison v0.4.1
-	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915
-	golang.org/x/sys v0.0.0-20191224085550-c709ea063b76 // indirect
+	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
+	golang.org/x/sys v0.0.0-20200113162924-86b910548bc1 // indirect
 )
