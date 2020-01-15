@@ -15,14 +15,14 @@ func NewPostgresRepo(db *gorm.DB) Repository {
 }
 
 func (r *repo) Create(user *entities.User) error {
-	err := r.DB.Save(user).Error
+	err := r.DB.Create(user).Error
 	switch err {
 	case nil:
 		return nil
 	case gorm.ErrRecordNotFound:
 		return pkg.ErrNotFound
 	default:
-		return pkg.ErrDatabase
+		return pkg.ErrAlreadyExists
 	}
 }
 

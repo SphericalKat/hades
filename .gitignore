@@ -8,6 +8,8 @@
 *.dylib
 hades-2.0
 
+ops/proxy/acme.json
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -21,3 +23,10 @@ vendor/
 .env
 tmp
 api/main
+main
+hades
+bin
+
+ops/traefik/acme.json
+
+db

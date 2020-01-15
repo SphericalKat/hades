@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ATechnoHazard/hades-2/internal/utils"
+
 	"github.com/ATechnoHazard/hades-2/api/handler"
 	"github.com/ATechnoHazard/hades-2/pkg/coupon"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
@@ -28,9 +30,12 @@ import (
 func init() {
 	log.SetFormatter(&log.JSONFormatter{PrettyPrint: true})
 	log.SetOutput(os.Stdout)
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
+	log.Printf("Running on %s", os.Getenv("ENV"))
+	if os.Getenv("ENV") != "PROD" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -98,6 +103,13 @@ func main() {
 	handler.MakeEventSegmentHandler(r, segmentSvc, eventSvc)
 	handler.MakeEventHandler(r, eventSvc, j)
 	handler.MakeAclHandler(r, j)
+	handler.MakeExporterHandler(r, eventSvc, segmentSvc)
+
+	// Health check
+	r.HandlerFunc("GET", "/api/v2/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		utils.Respond(w, utils.Message(http.StatusOK, "Health check successful"))
+		return
+	})
 
 	// listen and serve on given port
 	port := os.Getenv("PORT")
