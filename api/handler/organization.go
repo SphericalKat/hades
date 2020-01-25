@@ -2,6 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
@@ -9,9 +13,6 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/organization"
 	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
-	"os"
-	"time"
 )
 
 func acceptJoinRequest(oSvc organization.Service, j *janus.Janus) http.HandlerFunc {
@@ -192,12 +193,29 @@ func createOrg(oSvc organization.Service, j *janus.Janus) http.HandlerFunc {
 	}
 }
 
+func getAllOrgs(oSvc organization.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		orgs, err := oSvc.GetAllOrgs()
+		if err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		msg := u.Message(http.StatusOK, "Organizations retrieved successfully")
+		msg["orgs"] = orgs
+
+		u.Respond(w, msg)
+		return
+	}
+}
+
 func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service, j *janus.Janus) {
 	r.HandlerFunc("POST", "/api/v2/org/accept", middleware.JwtAuthentication(j.GetHandler(acceptJoinRequest(oSvc, j))))
 	r.HandlerFunc("POST", "/api/v2/org/join", middleware.JwtAuthentication(sendJoinRequest(oSvc)))
 	r.HandlerFunc("POST", "/api/v2/org/login-org", middleware.JwtAuthentication(loginOrg(oSvc)))
+	r.HandlerFunc("POST", "/api/v2/org/create", middleware.JwtAuthentication(createOrg(oSvc, j)))
 	r.HandlerFunc("GET", "/api/v2/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
-	r.HandlerFunc("POST", "/api/v2/org/create", middleware.JwtAuthentication(createOrg(oSvc, j)))
+	r.HandlerFunc("GET", "/api/v2/org", getAllOrgs(oSvc))
 
 }
