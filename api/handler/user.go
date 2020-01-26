@@ -105,6 +105,6 @@ func getAllUsers(uSvc user.Service) http.HandlerFunc {
 func MakeUserHandler(r *httprouter.Router, uSvc user.Service) {
 	r.HandlerFunc("POST", "/api/v2/org/signup", signUp(uSvc))
 	r.HandlerFunc("POST", "/api/v2/org/login", login(uSvc))
-	r.HandlerFunc("GET", "/api/v2/org/", middleware.JwtAuthentication(getUserOrgs(uSvc)))
+	r.HandlerFunc("GET", "/api/v2/org", middleware.JwtAuthentication(getUserOrgs(uSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/users", middleware.JwtAuthentication(getAllUsers(uSvc)))
 }

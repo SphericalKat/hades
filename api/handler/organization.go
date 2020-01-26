@@ -216,6 +216,6 @@ func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service, j *janus.Ja
 	r.HandlerFunc("POST", "/api/v2/org/create", middleware.JwtAuthentication(createOrg(oSvc, j)))
 	r.HandlerFunc("GET", "/api/v2/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
-	r.HandlerFunc("GET", "/api/v2/org", getAllOrgs(oSvc))
+	r.HandlerFunc("GET", "/api/v2/org/all", getAllOrgs(oSvc))
 
 }
