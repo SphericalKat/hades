@@ -3,7 +3,8 @@ module github.com/ATechnoHazard/hades-2
 go 1.13
 
 require (
-	github.com/ATechnoHazard/janus v0.0.0-20191224181312-f05d1d337129
+	cloud.google.com/go v0.37.4 // indirect
+	github.com/ATechnoHazard/janus v0.0.0-20200128073155-86af2ccbc633
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gocarina/gocsv v0.0.0-20191214001331-e6697589f2e0
 	github.com/jinzhu/gorm v1.9.12
@@ -15,6 +16,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/urfave/negroni v1.0.0
 	github.com/wI2L/jettison v0.4.1
-	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
-	golang.org/x/sys v0.0.0-20200113162924-86b910548bc1 // indirect
+	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad
+	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 )
