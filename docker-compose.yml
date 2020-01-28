@@ -34,7 +34,7 @@ services:
       - 5432:5432
     env_file: ./.env
     volumes:
-      - ./db:/var/lib/postgresql
+      - db-data:/var/lib/postgresql
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
@@ -69,3 +69,6 @@ services:
     command: --interval 30
     labels:
       - traefik.enable=false
+
+volumes:
+    db-data:

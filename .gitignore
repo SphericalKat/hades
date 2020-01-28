@@ -26,6 +26,7 @@ api/main
 main
 hades
 bin
+dbdata
 
 ops/traefik/acme.json
 

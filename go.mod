@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	cloud.google.com/go v0.37.4 // indirect
-	github.com/ATechnoHazard/janus v0.0.0-20200128073155-86af2ccbc633
+	github.com/ATechnoHazard/janus v0.0.0-20200128081716-bc38faff125b
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gocarina/gocsv v0.0.0-20191214001331-e6697589f2e0
 	github.com/jinzhu/gorm v1.9.12

@@ -8,6 +8,7 @@ import (
 	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"log"
 )
 
 func setRights(j *janus.Janus) http.HandlerFunc {
@@ -54,6 +55,7 @@ func getRights(j *janus.Janus) http.HandlerFunc {
 
 		msg := u.Message(http.StatusOK, "Account successfully retrieved")
 		msg["account"] = acc
+		log.Println(acc)
 		u.Respond(w, msg)
 		return
 	}
