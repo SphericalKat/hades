@@ -4,10 +4,9 @@ import "github.com/ATechnoHazard/hades-2/pkg/entities"
 
 type Service interface {
 	SaveCoupon(*entities.Coupon) error
-	RemoveCouponParticipant(uint, string) error
+	RedeemCoupon(uint, string) error
 	DeleteCoupon(uint) error
 	GetCoupons(uint, uint) ([]entities.Coupon, error)
-	AddCouponsToAll(uint) error
 	VerifyCoupon(uint, uint) (bool, error)
 }
 
@@ -23,8 +22,8 @@ func (s *couponSvc) SaveCoupon(coupons *entities.Coupon) error {
 	return s.repo.SaveCoupon(coupons)
 }
 
-func (s *couponSvc) RemoveCouponParticipant(couponId uint, regNo string) error {
-	return s.repo.RemoveCouponParticipant(couponId, regNo)
+func (s *couponSvc) RedeemCoupon(couponId uint, regNo string) error {
+	return s.repo.RedeemCoupon(couponId, regNo)
 }
 
 func (s *couponSvc) DeleteCoupon(couponId uint) error {
@@ -33,10 +32,6 @@ func (s *couponSvc) DeleteCoupon(couponId uint) error {
 
 func (s *couponSvc) GetCoupons(eventId uint, day uint) ([]entities.Coupon, error) {
 	return s.repo.GetCoupons(eventId, day)
-}
-
-func (s *couponSvc) AddCouponsToAll(eventId uint) error {
-	return s.repo.AddCouponsToAll(eventId)
 }
 
 func (s *couponSvc) VerifyCoupon(eventId uint, couponId uint) (bool, error) {

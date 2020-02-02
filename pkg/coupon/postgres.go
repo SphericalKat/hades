@@ -18,7 +18,7 @@ func (r *repo) SaveCoupon(coupon *entities.Coupon) error {
 	tx := r.DB.Begin()
 	eve := &entities.Event{ID: coupon.EventId}
 
-	switch tx.Find(eve).Error {
+	switch tx.Where("id = ?", coupon.EventId).Find(eve).Error {
 	case gorm.ErrRecordNotFound:
 		tx.Rollback()
 		return pkg.ErrNotFound
@@ -46,61 +46,86 @@ func (r *repo) DeleteCoupon(couponId uint) error {
 	}
 }
 
-func (r *repo) RemoveCouponParticipant(couponId uint, regNo string) error {
+func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 	tx := r.DB.Begin()
 	p := &entities.Participant{RegNo: regNo}
 	c := &entities.Coupon{}
+	var parts []entities.Participant
 
+	// Find the coupon in db
 	if err := tx.Where("coupon_id = ?", couponId).Find(c).Error; err != nil {
+		tx.Rollback()
 		switch err {
 		case gorm.ErrRecordNotFound:
-			tx.Rollback()
 			return pkg.ErrNotFound
 		default:
-			tx.Rollback()
 			return pkg.ErrDatabase
 		}
 	}
 
-	switch tx.Where("reg_no = ?", p.RegNo).Find(p).Error {
-	case gorm.ErrRecordNotFound:
+	// Find participant in db
+	if err := tx.Where("reg_no = ?", regNo).Find(p).Error; err != nil {
 		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	// Check if already redeemed
+	if err := tx.Model(c).Association("Participants").Find(&parts).Error; err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	if parts == nil {
 		return pkg.ErrNotFound
+	}
+	for _, part := range parts {
+		if part.RegNo == regNo {
+			return pkg.ErrAlreadyExists
+		}
+	}
 
-	case nil:
-		var coups []entities.Coupon
-		err := tx.Model(p).Association("Coupons").Find(&coups).Error
-
+	// verify that the participant is part of the event
+	if err := tx.Model(p).Association("Events").Find(&p.Events).Error; err != nil {
+		tx.Rollback()
 		switch err {
 		case gorm.ErrRecordNotFound:
-			tx.Rollback()
 			return pkg.ErrNotFound
-		case nil:
-			flag := false
-			for _, cp := range coups {
-				if cp.CouponId == couponId {
-					flag = true
-				}
-			}
-			if !flag {
-				return pkg.ErrNotFound
-			}
-			err := tx.Find(p).Association("Coupons").Delete(c).Error
-			if err != nil {
-				return pkg.ErrDatabase
-			}
-
-			tx.Commit()
-			return nil
 		default:
-			tx.Rollback()
 			return pkg.ErrDatabase
 		}
-
-	default:
-		tx.Rollback()
-		return pkg.ErrDatabase
 	}
+	flag := false
+	for _, event := range p.Events {
+		if event.ID == couponId {
+			flag = true
+		}
+	}
+
+	if !flag {
+		return pkg.ErrInvalidSlug
+	}
+
+	// Redeem coupon by adding to association
+	if err := tx.Model(c).Association("Participants").Append(&p).Error; err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	return nil
 }
 
 func (r *repo) GetCoupons(eventId uint, day uint) ([]entities.Coupon, error) {
@@ -115,58 +140,6 @@ func (r *repo) GetCoupons(eventId uint, day uint) ([]entities.Coupon, error) {
 	default:
 		return nil, pkg.ErrDatabase
 	}
-}
-
-func (r *repo) AddCouponsToAll(eventId uint) error {
-	eve := &entities.Event{ID: eventId}
-	var peeps []entities.Participant
-	var coups []entities.Coupon
-
-	tx := r.DB.Begin()
-	err := tx.Where("id = ?", eventId).Find(eve).Error
-
-	if err == gorm.ErrRecordNotFound {
-		tx.Rollback()
-		return pkg.ErrNotFound
-	} else if err != nil {
-		tx.Rollback()
-		return pkg.ErrDatabase
-	}
-
-	// populate coupons by event id.
-	err = tx.Model(entities.Coupon{}).Where("event_id = ?", eventId).Find(&coups).Error
-	if err == gorm.ErrRecordNotFound {
-		tx.Rollback()
-		return pkg.ErrNotFound
-	} else if err != nil {
-		tx.Rollback()
-		return pkg.ErrDatabase
-	}
-
-	// populate participants in the event.
-	err = tx.Model(eve).Association("Attendees").Find(&peeps).Error
-	if err == gorm.ErrRecordNotFound {
-		tx.Rollback()
-		return pkg.ErrNotFound
-	} else if err != nil {
-		tx.Rollback()
-		return pkg.ErrDatabase
-	}
-
-	for _, coup := range coups {
-		for _, peep := range peeps {
-			err = tx.Model(peep).Association("Coupons").Append(coup).Error
-			if err == gorm.ErrRecordNotFound {
-				tx.Rollback()
-				return pkg.ErrNotFound
-			} else if err != nil {
-				tx.Rollback()
-				return pkg.ErrDatabase
-			}
-		}
-	}
-	tx.Commit()
-	return nil
 }
 
 func (r *repo) VerifyCoupon(eventId uint, couponId uint) (bool, error) {

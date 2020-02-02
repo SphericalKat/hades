@@ -139,7 +139,7 @@ func redeemCoupon(couponService coupon.Service, eventService event.Service) http
 			return
 		}
 
-		if err := couponService.RemoveCouponParticipant(composite.CouponID, composite.RegNo); err != nil {
+		if err := couponService.RedeemCoupon(composite.CouponID, composite.RegNo); err != nil {
 			views.Wrap(err, w)
 			return
 		}
@@ -148,39 +148,7 @@ func redeemCoupon(couponService coupon.Service, eventService event.Service) http
 	}
 }
 
-func addAllCoupons(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		coup := &entities.Coupon{}
-
-		ctx := r.Context()
-		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
-
-		if err := json.NewDecoder(r.Body).Decode(coup); err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
-		eve, err := eventService.ReadEvent(coup.EventId)
-		if err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
-		if tk.OrgID != eve.OrganizationID {
-			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource."))
-			return
-		}
-
-		if err := couponService.AddCouponsToAll(eve.ID); err != nil {
-			views.Wrap(err, w)
-			return
-		}
-
-		u.Respond(w, u.Message(http.StatusOK, "Added coupons to all participants successfully."))
-	}
-}
-
-func GetCoupons(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
+func getCoupons(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		coup := &entities.Coupon{}
 		ctx := r.Context()
@@ -226,8 +194,6 @@ func MakeCouponHandler(r *httprouter.Router, couponService coupon.Service, event
 		middleware.JwtAuthentication(j.GetHandler(deleteCoupon(couponService, eventService))))
 	r.HandlerFunc("POST", "/api/v2/coupon/redeem-coupon",
 		middleware.JwtAuthentication(redeemCoupon(couponService, eventService)))
-	r.HandlerFunc("POST", "/api/v2/coupon/add-all-coupons",
-		middleware.JwtAuthentication(j.GetHandler(addAllCoupons(couponService, eventService))))
 	r.HandlerFunc("POST", "/api/v2/coupon/get-coupons",
-		middleware.JwtAuthentication(GetCoupons(couponService, eventService)))
+		middleware.JwtAuthentication(getCoupons(couponService, eventService)))
 }
