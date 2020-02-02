@@ -53,11 +53,11 @@ func getParticipantsCSVData(eventService event.Service, segmentService segment.S
 			peepMap[peep.RegNo].IsPresent = true
 		}
 
-		csvPeeps := make([]*entities.CSVParticipant, 0)
+		csvPeeps := make([]entities.CSVParticipant, 0)
 
 		// retrieve all values from peepMap
 		for _, csvPeep := range peepMap {
-			csvPeeps = append(csvPeeps, csvPeep)
+			csvPeeps = append(csvPeeps, *csvPeep)
 		}
 
 		csvContents, err := gocsv.MarshalString(&csvPeeps)
@@ -113,11 +113,11 @@ func getParticipantsJSONData(eventService event.Service, segmentService segment.
 			peepMap[peep.RegNo].IsPresent = true
 		}
 
-		jsonPeeps := make([]*entities.CSVParticipant, 0)
+		jsonPeeps := make([]entities.CSVParticipant, 0)
 
 		// retrieve all values from peepMap
 		for _, jsonPeep := range peepMap {
-			jsonPeeps = append(jsonPeeps, jsonPeep)
+			jsonPeeps = append(jsonPeeps, *jsonPeep)
 		}
 
 		msg := utils.Message(http.StatusOK, "Retrieved JSON data successfully.")
