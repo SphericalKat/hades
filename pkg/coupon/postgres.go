@@ -23,6 +23,9 @@ func (r *repo) SaveCoupon(coupon *entities.Coupon) error {
 		tx.Rollback()
 		return pkg.ErrNotFound
 	case nil:
+		if coupon.Day > eve.Days {
+			return pkg.ErrInvalidSlug
+		}
 		if err := tx.Save(coupon).Error; err != nil {
 			tx.Rollback()
 			return pkg.ErrDatabase
