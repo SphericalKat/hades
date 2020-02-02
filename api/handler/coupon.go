@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/ATechnoHazard/hades-2/api/middleware"
 	"github.com/ATechnoHazard/hades-2/api/views"
 	u "github.com/ATechnoHazard/hades-2/internal/utils"
@@ -10,7 +12,6 @@ import (
 	"github.com/ATechnoHazard/hades-2/pkg/event"
 	"github.com/ATechnoHazard/janus"
 	"github.com/julienschmidt/httprouter"
-	"net/http"
 )
 
 func saveCoupon(couponService coupon.Service, eventService event.Service) http.HandlerFunc {
@@ -159,9 +160,7 @@ func addAllCoupons(couponService coupon.Service, eventService event.Service) htt
 			return
 		}
 
-		eve := &entities.Event{}
 		eve, err := eventService.ReadEvent(coup.EventId)
-
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -207,7 +206,7 @@ func GetCoupons(couponService coupon.Service, eventService event.Service) http.H
 
 		var coups []entities.Coupon
 
-		coups, err = couponService.GetCoupons(coup.EventId)
+		coups, err = couponService.GetCoupons(coup.EventId, coup.Day)
 
 		if err != nil {
 			views.Wrap(err, w)

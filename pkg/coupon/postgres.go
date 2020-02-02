@@ -71,7 +71,6 @@ func (r *repo) RemoveCouponParticipant(couponId uint, regNo string) error {
 		var coups []entities.Coupon
 		err := tx.Model(p).Association("Coupons").Find(&coups).Error
 
-
 		switch err {
 		case gorm.ErrRecordNotFound:
 			tx.Rollback()
@@ -104,9 +103,9 @@ func (r *repo) RemoveCouponParticipant(couponId uint, regNo string) error {
 	}
 }
 
-func (r *repo) GetCoupons(eventId uint) ([]entities.Coupon, error) {
+func (r *repo) GetCoupons(eventId uint, day uint) ([]entities.Coupon, error) {
 	var coupons []entities.Coupon
-	err := r.DB.Model(entities.Coupon{}).Where("event_id = ?", eventId).Find(&coupons).Error
+	err := r.DB.Model(entities.Coupon{}).Where("event_id = ?", eventId).Where("day = ?", day).Find(&coupons).Error
 
 	switch err {
 	case gorm.ErrRecordNotFound:
@@ -124,7 +123,7 @@ func (r *repo) AddCouponsToAll(eventId uint) error {
 	var coups []entities.Coupon
 
 	tx := r.DB.Begin()
-	err := tx.Find(eve).Error
+	err := tx.Where("id = ?", eventId).Find(eve).Error
 
 	if err == gorm.ErrRecordNotFound {
 		tx.Rollback()
@@ -172,7 +171,7 @@ func (r *repo) AddCouponsToAll(eventId uint) error {
 
 func (r *repo) VerifyCoupon(eventId uint, couponId uint) (bool, error) {
 	coup := &entities.Coupon{CouponId: couponId}
-	err := r.DB.Find(coup).Error
+	err := r.DB.Where("coupon_id = ?", couponId).Find(coup).Error
 
 	if err == nil {
 		if coup.EventId != eventId {

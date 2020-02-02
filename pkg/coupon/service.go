@@ -6,7 +6,7 @@ type Service interface {
 	SaveCoupon(*entities.Coupon) error
 	RemoveCouponParticipant(uint, string) error
 	DeleteCoupon(uint) error
-	GetCoupons(uint) ([]entities.Coupon, error)
+	GetCoupons(uint, uint) ([]entities.Coupon, error)
 	AddCouponsToAll(uint) error
 	VerifyCoupon(uint, uint) (bool, error)
 }
@@ -31,8 +31,8 @@ func (s *couponSvc) DeleteCoupon(couponId uint) error {
 	return s.repo.DeleteCoupon(couponId)
 }
 
-func (s *couponSvc) GetCoupons(eventId uint) ([]entities.Coupon, error) {
-	return s.repo.GetCoupons(eventId)
+func (s *couponSvc) GetCoupons(eventId uint, day uint) ([]entities.Coupon, error) {
+	return s.repo.GetCoupons(eventId, day)
 }
 
 func (s *couponSvc) AddCouponsToAll(eventId uint) error {

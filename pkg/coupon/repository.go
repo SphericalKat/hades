@@ -6,7 +6,7 @@ type Repository interface {
 	SaveCoupon(*entities.Coupon) error
 	RemoveCouponParticipant(uint, string) error
 	DeleteCoupon(uint) error
-	GetCoupons(uint) ([]entities.Coupon, error)
+	GetCoupons(uint, uint) ([]entities.Coupon, error)
 	AddCouponsToAll(uint) error
 	VerifyCoupon(uint, uint) (bool, error)
 }
