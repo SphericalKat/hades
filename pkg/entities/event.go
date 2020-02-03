@@ -6,7 +6,7 @@ import (
 
 type Event struct {
 	ID                    uint           `json:"event_id" gorm:"primary_key;AUTO_INCREMENT"`
-	Days                  uint           `json:"days" gorm:"-"`
+	Days                  uint           `json:"days"`
 	OrganizationID        uint           `json:"org_id"`
 	Name                  string         `json:"name" gorm:"unique"`
 	Budget                string         `json:"budget"`
