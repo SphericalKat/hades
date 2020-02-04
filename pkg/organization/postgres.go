@@ -98,11 +98,16 @@ func (r *repo) SaveJoinReq(request *entities.JoinRequest) error {
 	tx := r.DB.Begin()
 	u := &entities.User{Email: request.Email}
 	org := &entities.Organization{ID: request.OrganizationID}
-	if tx.Find(u).Association("Organizations").Find(&u.Organizations).Error == gorm.ErrRecordNotFound {
+	if tx.Where("email = ?", request.Email).
+		Find(u).
+		Association("Organizations").
+		Find(&u.Organizations).
+		Error == gorm.ErrRecordNotFound {
 		tx.Rollback()
 		return pkg.ErrNotFound
 	}
 
+	// check if the join request already exists
 	for _, org := range u.Organizations {
 		if org.ID == request.OrganizationID {
 			tx.Rollback()
@@ -110,7 +115,8 @@ func (r *repo) SaveJoinReq(request *entities.JoinRequest) error {
 		}
 	}
 
-	if tx.Find(org).Error == gorm.ErrRecordNotFound {
+	// find the organization
+	if tx.Where("id = ?", request.OrganizationID).Find(org).Error == gorm.ErrRecordNotFound {
 		tx.Rollback()
 		return pkg.ErrNotFound
 	}
@@ -128,6 +134,40 @@ func (r *repo) SaveJoinReq(request *entities.JoinRequest) error {
 		tx.Rollback()
 		return pkg.ErrDatabase
 	}
+}
+
+func (r *repo) DelJoinReq(orgID uint, email string) error {
+	org := &entities.Organization{}
+	tx := r.DB.Begin()
+	if email == "" || orgID == 0 {
+		return pkg.ErrInvalidSlug
+	}
+
+	// find organization to delete the join req from
+	if err := tx.Where("id = ?", orgID).Find(org).Error; err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	// find join requests belonging to the org
+	if err := tx.Find(org).Association("JoinRequests").Delete(&entities.JoinRequest{
+		Email: email,
+	}).Error; err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+	tx.Commit()
+	return nil
 }
 
 func (r *repo) FindAllJoinReq(orgID uint) ([]entities.JoinRequest, error) {

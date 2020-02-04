@@ -55,6 +55,38 @@ func acceptJoinRequest(oSvc organization.Service, j *janus.Janus) http.HandlerFu
 	}
 }
 
+func delJoinRequest(oSvc organization.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		tk := ctx.Value(middleware.JwtContextKey("token")).(*middleware.Token)
+		jtk := ctx.Value("janus_context").(*janus.Account)
+
+		if jtk.Role != "admin" {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
+
+		jr := &entities.JoinRequest{}
+		if err := json.NewDecoder(r.Body).Decode(jr); err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		if jr.OrganizationID != tk.OrgID {
+			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
+			return
+		}
+
+		if err := oSvc.DelJoinReq(jr.OrganizationID, jr.Email); err != nil {
+			views.Wrap(err, w)
+			return
+		}
+
+		u.Respond(w, u.Message(http.StatusOK, "Join request deleted successfully"))
+		return
+	}
+}
+
 func sendJoinRequest(oSvc organization.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -217,5 +249,6 @@ func MakeOrgHandler(r *httprouter.Router, oSvc organization.Service, j *janus.Ja
 	r.HandlerFunc("GET", "/api/v2/org/events", middleware.JwtAuthentication(getOrgEvents(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/requests", middleware.JwtAuthentication(viewJoinRequests(oSvc)))
 	r.HandlerFunc("GET", "/api/v2/org/all", getAllOrgs(oSvc))
+	r.HandlerFunc("DELETE", "/api/v2/org/delete-req", middleware.JwtAuthentication(j.GetHandler(delJoinRequest(oSvc))))
 
 }

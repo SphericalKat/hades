@@ -15,6 +15,7 @@ type Service interface {
 	SendJoinRequest(orgID uint, email string) error
 	GetAllJoinReqs(orgID uint) ([]entities.JoinRequest, error)
 	AcceptJoinReq(orgID uint, email string) error
+	DelJoinReq(orgID uint, email string) error
 	LoginOrg(orgID uint, email string) (*jwt.Token, error)
 	GetOrgJoinReqs(orgID uint) ([]entities.JoinRequest, error)
 	FindOrg(orgID uint) (*entities.Organization, error)
@@ -31,6 +32,10 @@ func NewOrganizationService(rp Repository) Service {
 
 func (o *orgSvc) GetAllJoinReqs(orgID uint) ([]entities.JoinRequest, error) {
 	return o.repo.FindAllJoinReq(orgID)
+}
+
+func (o *orgSvc) DelJoinReq(orgID uint, email string) error {
+	return o.repo.DelJoinReq(orgID, email)
 }
 
 func (o *orgSvc) AcceptJoinReq(orgID uint, email string) error {
