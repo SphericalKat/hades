@@ -123,6 +123,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 
 	// Redeem coupon by adding to association
 	if err := tx.Model(c).Association("Participants").Append(p).Error; err != nil {
+		tx.Rollback()
 		switch err {
 		case gorm.ErrRecordNotFound:
 			return pkg.ErrNotFound
@@ -132,6 +133,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 		}
 	}
 
+	tx.Commit()
 	return nil
 }
 
