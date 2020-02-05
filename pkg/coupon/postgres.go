@@ -100,7 +100,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 	}
 
 	// verify that the participant is part of the event
-	if err := tx.Model(p).Association("Events").Find(&p.Events).Error; err != nil {
+	if err := tx.Model(p).Association("Events").Find(&(p.Events)).Error; err != nil {
 		tx.Rollback()
 		switch err {
 		case gorm.ErrRecordNotFound:
@@ -122,7 +122,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 	}
 
 	// Redeem coupon by adding to association
-	if err := tx.Model(c).Association("Participants").Append(&p).Error; err != nil {
+	if err := tx.Model(c).Association("Participants").Append(p).Error; err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			return pkg.ErrNotFound
