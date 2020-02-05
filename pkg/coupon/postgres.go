@@ -1,6 +1,8 @@
 package coupon
 
 import (
+	"log"
+
 	"github.com/ATechnoHazard/hades-2/pkg"
 	"github.com/ATechnoHazard/hades-2/pkg/entities"
 	"github.com/jinzhu/gorm"
@@ -104,6 +106,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 		case gorm.ErrRecordNotFound:
 			return pkg.ErrNotFound
 		default:
+			log.Println(err)
 			return pkg.ErrDatabase
 		}
 	}
@@ -124,6 +127,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 		case gorm.ErrRecordNotFound:
 			return pkg.ErrNotFound
 		default:
+			log.Println(err)
 			return pkg.ErrDatabase
 		}
 	}
