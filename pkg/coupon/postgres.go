@@ -109,7 +109,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 	}
 	flag := false
 	for _, event := range p.Events {
-		if event.ID == couponId {
+		if event.ID == c.EventId {
 			flag = true
 		}
 	}
