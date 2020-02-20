@@ -98,13 +98,25 @@ func (r *repo) SaveJoinReq(request *entities.JoinRequest) error {
 	tx := r.DB.Begin()
 	u := &entities.User{Email: request.Email}
 	org := &entities.Organization{ID: request.OrganizationID}
-	if tx.Where("email = ?", request.Email).
-		Find(u).
-		Association("Organizations").
-		Find(&u.Organizations).
-		Error == gorm.ErrRecordNotFound {
+	if err := tx.Where("email = ?", request.Email).Find(u).Error; err != nil {
 		tx.Rollback()
-		return pkg.ErrNotFound
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
+	}
+
+	// find association
+	if err := tx.Model(u).Association("Organizations").Find(&u.Organizations).Error; err != nil {
+		tx.Rollback()
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return pkg.ErrNotFound
+		default:
+			return pkg.ErrDatabase
+		}
 	}
 
 	// check if the join request already exists
