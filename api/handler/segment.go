@@ -155,7 +155,7 @@ func markPresent(segmentService segment.Service, eventService event.Service) htt
 
 		for _, part := range eve.Attendees {
 			if part.RegNo == composite.RegNo {
-				if err := segmentService.AddParticipantToSegment(composite.RegNo, composite.Day, composite.EventID); err != nil {
+				if err := segmentService.AddParticipantToSegment(composite.Email, composite.Day, composite.EventID); err != nil {
 					views.Wrap(err, w)
 					return
 				}

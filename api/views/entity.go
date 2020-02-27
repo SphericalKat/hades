@@ -59,4 +59,5 @@ type SegmentParticipantComposite struct {
 	Day     uint   `json:"day"`
 	RegNo   string `json:"reg_no"`
 	EventID uint   `json:"event_id"`
+	Email   string `json:"email"`
 }

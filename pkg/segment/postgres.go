@@ -55,12 +55,12 @@ func (r *repo) GetParticipantsInSegment(day uint) ([]entities.Participant, error
 	return eveSegment.PresentParticipants, nil
 }
 
-func (r *repo) AddParticipantToSegment(regNo string, day uint, eventID uint) error {
+func (r *repo) AddParticipantToSegment(email string, day uint, eventID uint) error {
 	tx := r.DB.Begin()
 	part := &entities.Participant{}
 	eveSeg := &entities.EventSegment{}
 
-	err := tx.Where("reg_no = ?", regNo).Find(part).Error
+	err := tx.Where("email = ?", email).Find(part).Error
 	if err != nil {
 		tx.Rollback()
 		switch err {
