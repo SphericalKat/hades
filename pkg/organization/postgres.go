@@ -167,7 +167,7 @@ func (r *repo) DelJoinReq(orgID uint, email string) error {
 	}
 
 	// find join requests belonging to the org
-	if err := tx.Find(org).Association("JoinRequests").Delete(&entities.JoinRequest{
+	if err := tx.Model(org).Association("JoinRequests").Delete(&entities.JoinRequest{
 		Email: email,
 	}).Error; err != nil {
 		tx.Rollback()
