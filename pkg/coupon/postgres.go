@@ -51,9 +51,9 @@ func (r *repo) DeleteCoupon(couponId uint) error {
 	}
 }
 
-func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
+func (r *repo) RedeemCoupon(couponId uint, email string) error {
 	tx := r.DB.Begin()
-	p := &entities.Participant{RegNo: regNo}
+	p := &entities.Participant{Email: email}
 	c := &entities.Coupon{}
 	var parts []entities.Participant
 
@@ -69,7 +69,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 	}
 
 	// Find participant in db
-	if err := tx.Where("reg_no = ?", regNo).Find(p).Error; err != nil {
+	if err := tx.Where("email = ?", email).Find(p).Error; err != nil {
 		tx.Rollback()
 		switch err {
 		case gorm.ErrRecordNotFound:
@@ -94,7 +94,7 @@ func (r *repo) RedeemCoupon(couponId uint, regNo string) error {
 		return pkg.ErrNotFound
 	}
 	for _, part := range parts {
-		if part.RegNo == regNo {
+		if part.Email == email {
 			return pkg.ErrAlreadyExists
 		}
 	}

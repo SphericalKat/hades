@@ -139,7 +139,7 @@ func redeemCoupon(couponService coupon.Service, eventService event.Service) http
 			return
 		}
 
-		if err := couponService.RedeemCoupon(composite.CouponID, composite.RegNo); err != nil {
+		if err := couponService.RedeemCoupon(composite.CouponID, composite.Email); err != nil {
 			views.Wrap(err, w)
 			return
 		}

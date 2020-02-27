@@ -22,8 +22,8 @@ func (s *couponSvc) SaveCoupon(coupons *entities.Coupon) error {
 	return s.repo.SaveCoupon(coupons)
 }
 
-func (s *couponSvc) RedeemCoupon(couponId uint, regNo string) error {
-	return s.repo.RedeemCoupon(couponId, regNo)
+func (s *couponSvc) RedeemCoupon(couponId uint, email string) error {
+	return s.repo.RedeemCoupon(couponId, email)
 }
 
 func (s *couponSvc) DeleteCoupon(couponId uint) error {

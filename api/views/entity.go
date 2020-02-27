@@ -52,6 +52,7 @@ type CouponParticipantComposite struct {
 	CouponID uint   `json:"coupon_id"`
 	RegNo    string `json:"reg_no"`
 	EventID  uint   `json:"event_id"`
+	Email    string `json:"email"`
 }
 
 type SegmentParticipantComposite struct {
