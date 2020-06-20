@@ -36,14 +36,14 @@ func (r *repo) FindAll(eventId uint) ([]entities.Participant, error) {
 	return participants, nil
 }
 
-func (r *repo) FindByRegNo(regNo string, eventID uint) (*entities.Participant, error) {
+func (r *repo) FindByEmail(email string, eventID uint) (*entities.Participant, error) {
 	e := &entities.Event{ID: eventID}
 
 	err := r.DB.Find(e).Association("Attendees").Find(&e.Attendees).Error
 	switch err {
 	case nil:
 		for _, p := range e.Attendees {
-			if p.RegNo == regNo {
+			if p.Email == email {
 				return &p, nil
 			}
 		}
@@ -84,8 +84,8 @@ func (r *repo) Save(participant *entities.Participant, eventID uint) error {
 	return nil
 }
 
-func (r *repo) Delete(regNo string) error {
-	err := r.DB.Where("reg_no = ?", regNo).Delete(&entities.Participant{}).Error
+func (r *repo) Delete(email string) error {
+	err := r.DB.Where("email = ?", email).Delete(&entities.Participant{}).Error
 	switch err {
 	case nil:
 		return nil
@@ -96,10 +96,10 @@ func (r *repo) Delete(regNo string) error {
 	}
 }
 
-func (r *repo) RemoveAttendeeEvent(regNo string, eventID uint) error {
+func (r *repo) RemoveAttendeeEvent(email string, eventID uint) error {
 	tx := r.DB.Begin()
 	e := &entities.Event{ID: eventID}
-	p := &entities.Participant{RegNo: regNo}
+	p := &entities.Participant{Email: email}
 
 	if tx.Find(e).Error == gorm.ErrRecordNotFound {
 		tx.Rollback()

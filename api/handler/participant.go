@@ -77,7 +77,7 @@ func deleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
 		}
 
-		if err := pSvc.DeleteAttendee(p.RegNo); err != nil {
+		if err := pSvc.DeleteAttendee(p.Email); err != nil {
 			views.Wrap(err, w)
 			return
 		}
@@ -89,9 +89,9 @@ func deleteAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFu
 
 func readAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		regNo, ok := r.URL.Query()["reg_no"]
-		if !ok || len(regNo) < 1 {
-			u.Respond(w, u.Message(http.StatusBadRequest, "Invalid Registration number"))
+		email, ok := r.URL.Query()["email"]
+		if !ok || len(email) < 1 {
+			u.Respond(w, u.Message(http.StatusBadRequest, "Invalid email ID"))
 			return
 		}
 
@@ -118,7 +118,7 @@ func readAttendee(pSvc participant.Service, eSvc event.Service) http.HandlerFunc
 			u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from accessing this resource"))
 		}
 
-		a, err := pSvc.ReadAttendee(regNo[0], e.ID)
+		a, err := pSvc.ReadAttendee(email[0], e.ID)
 		if err != nil {
 			views.Wrap(err, w)
 			return
@@ -156,13 +156,13 @@ func rmAttendeeEvent(pSvc participant.Service, eSvc event.Service) http.HandlerF
 		}
 
 		for _, part := range e.Attendees {
-			if part.RegNo == p.RegNo {
+			if part.Email == p.Email {
 				if e.OrganizationID != tk.OrgID {
 					u.Respond(w, u.Message(http.StatusForbidden, "You are forbidden from modifying this resource"))
 					return
 				}
 
-				if err := pSvc.RemoveAttendeeEvent(p.RegNo, p.EventId); err != nil {
+				if err := pSvc.RemoveAttendeeEvent(p.Email, p.EventId); err != nil {
 					views.Wrap(err, w)
 					return
 				}

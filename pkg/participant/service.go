@@ -7,9 +7,9 @@ import (
 
 type Service interface {
 	CreateAttendee(participant *entities.Participant, eventID uint) error
-	DeleteAttendee(regNo string) error
-	ReadAttendee(regNo string, eventID uint) (*entities.Participant, error)
-	RemoveAttendeeEvent(regNo string, eventID uint) error
+	DeleteAttendee(email string) error
+	ReadAttendee(email string, eventID uint) (*entities.Participant, error)
+	RemoveAttendeeEvent(email string, eventID uint) error
 }
 
 type participantSvc struct {
@@ -21,21 +21,21 @@ func NewParticipantService(r Repository) Service {
 }
 
 func (s *participantSvc) CreateAttendee(participant *entities.Participant, eventID uint) error {
-	a, err := s.repo.FindByRegNo(participant.RegNo, eventID)
+	a, err := s.repo.FindByEmail(participant.Email, eventID)
 	if err != nil && a != nil {
 		return pkg.ErrAlreadyExists
 	}
 	return s.repo.Save(participant, eventID)
 }
 
-func (s *participantSvc) DeleteAttendee(regNo string) error {
-	return s.repo.Delete(regNo)
+func (s *participantSvc) DeleteAttendee(email string) error {
+	return s.repo.Delete(email)
 }
 
-func (s *participantSvc) ReadAttendee(regNo string, eventID uint) (*entities.Participant, error) {
-	return s.repo.FindByRegNo(regNo, eventID)
+func (s *participantSvc) ReadAttendee(email string, eventID uint) (*entities.Participant, error) {
+	return s.repo.FindByEmail(email, eventID)
 }
 
-func (s *participantSvc) RemoveAttendeeEvent(regNo string, eventID uint) error {
-	return s.repo.RemoveAttendeeEvent(regNo, eventID)
+func (s *participantSvc) RemoveAttendeeEvent(email string, eventID uint) error {
+	return s.repo.RemoveAttendeeEvent(email, eventID)
 }

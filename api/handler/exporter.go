@@ -45,12 +45,12 @@ func getParticipantsCSVData(eventService event.Service, segmentService segment.S
 
 		// Populate all peeps in the event and hash them into peepMap
 		for _, peep := range eve.Attendees {
-			peepMap[peep.RegNo] = entities.P2CSVPTransform(&peep)
+			peepMap[peep.Email] = entities.P2CSVPTransform(&peep)
 		}
 
 		// mark present peeps as present.
 		for _, peep := range seg.PresentParticipants {
-			peepMap[peep.RegNo].IsPresent = true
+			peepMap[peep.Email].IsPresent = true
 		}
 
 		csvPeeps := make([]entities.CSVParticipant, 0)
@@ -105,12 +105,12 @@ func getParticipantsJSONData(eventService event.Service, segmentService segment.
 
 		// Populate all peeps in the event and hash them into peepMap
 		for _, peep := range eve.Attendees {
-			peepMap[peep.RegNo] = entities.P2CSVPTransform(&peep)
+			peepMap[peep.Email] = entities.P2CSVPTransform(&peep)
 		}
 
 		// mark present peeps as present.
 		for _, peep := range seg.PresentParticipants {
-			peepMap[peep.RegNo].IsPresent = true
+			peepMap[peep.Email].IsPresent = true
 		}
 
 		jsonPeeps := make([]entities.CSVParticipant, 0)

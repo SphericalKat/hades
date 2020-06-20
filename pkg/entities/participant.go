@@ -6,8 +6,8 @@ import (
 
 type Participant struct {
 	Name          string         `json:"name"`
-	RegNo         string         `json:"reg_no" gorm:"primary_key"`
-	Email         string         `json:"email"`
+	RegNo         string         `json:"reg_no"`
+	Email         string         `json:"email" gorm:"primary_key"`
 	PhoneNumber   string         `json:"phone_number"`
 	Gender        string         `json:"gender"`
 	DeletedAt     *time.Time     `json:"-" sql:"index"`

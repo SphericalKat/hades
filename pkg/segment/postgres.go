@@ -94,7 +94,7 @@ func (r *repo) AddParticipantToSegment(email string, day uint, eventID uint) err
 	}
 
 	for _, p := range eveSeg.PresentParticipants {
-		if p.RegNo == part.RegNo {
+		if p.Email == part.Email {
 			tx.Rollback()
 			return pkg.ErrAlreadyExists
 		}
