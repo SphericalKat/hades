@@ -8,12 +8,17 @@ import (
 type Service interface {
 	CreateAttendee(participant *entities.Participant, eventID uint) error
 	DeleteAttendee(email string) error
+	SaveAttendee(participant *entities.Participant, eventID uint) error
 	ReadAttendee(email string, eventID uint) (*entities.Participant, error)
 	RemoveAttendeeEvent(email string, eventID uint) error
 }
 
 type participantSvc struct {
 	repo Repository
+}
+
+func (s *participantSvc) SaveAttendee(participant *entities.Participant, eventID uint) error {
+	return s.repo.Save(participant, eventID)
 }
 
 func NewParticipantService(r Repository) Service {
